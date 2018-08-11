@@ -1,0 +1,20 @@
+precision mediump float;
+
+uniform mat4 ts_ModelViewProjectionMatrix;
+uniform mat3 ts_NormalMatrix;
+uniform float f;
+
+attribute vec3 ts_Normal;
+attribute vec4 ts_Vertex;
+attribute vec4 ts_Vertex2;
+attribute vec4 ts_Color;
+
+varying vec3 normal;
+varying vec4 color;
+
+void main() {
+    vec4 v = mix(ts_Vertex, ts_Vertex2, f);
+	gl_Position = ts_ModelViewProjectionMatrix * v;
+	normal = ts_NormalMatrix * ts_Normal;
+	color = ts_Color;
+}

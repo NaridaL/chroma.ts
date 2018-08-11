@@ -1,0 +1,19 @@
+{
+	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"[typescript]": {
+		"editor.formatOnSave": true
+	},
+	"[typescriptreact]": {
+		"editor.formatOnSave": true
+	},
+	"[json]": {
+		"editor.formatOnSave": true
+	},
+	"mocha.requires": ["ts-node/register"],
+	"mocha.files.glob": "./test/**/*.test.ts",
+	"mocha.runTestsOnSave": "true",
+	"mocha.options": {
+		"ui": "tdd",
+		"compilers": "ts:ts-node/register"
+	}
+}

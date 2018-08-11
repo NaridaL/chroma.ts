@@ -1,0 +1,13 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"lib": ["dom", "esnext"],
+		"jsx": "react",
+		"allowSyntheticDefaultImports": true
+	},
+	"include": [
+		"./*.ts",
+		"./*.tsx",
+		"../node_modules/webgl-strict-types/*.d.ts"
+	]
+}

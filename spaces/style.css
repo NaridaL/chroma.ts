@@ -1,0 +1,69 @@
+body {
+	margin: 0;
+	font-family: "OpenSans", sans-serif;
+	font-size: smaller;
+}
+#container {
+	display: flex;
+	height: 100%;
+}
+.picker {
+	width: 14em;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.picker > .title {
+	font-style: italic;
+}
+.picker-option {
+	display: block;
+	cursor: pointer;
+	padding: 0.2em;
+	flex-grow: 1;
+}
+.picker-option:nth-child(odd) {
+	background-color: #f0f0f0;
+}
+.picker-option .title {
+	font-weight: bold;
+}
+.picker-option.selected {
+	background-color: lightblue;
+}
+#canvasContainer {
+	flex-grow: 1;
+	flex-basis: 0%;
+
+	display: flex;
+	flex-direction: column;
+}
+#spacesCanvas {
+	display: block;
+	width: 800px;
+	height: 600px;
+	/* flex-grow: 1; */
+	/* width: 100%; */
+}
+#info {
+	height: 40px;
+}
+#info > * {
+	display: inline-block;
+	height: 100%;
+	vertical-align: top;
+	line-height: 39px;
+}
+
+#activeColorPreview {
+	width: 24em;
+}
+#activeColorPreview > * {
+	display: inline-block;
+}
+#activeColorHex {
+	font-size: larger;
+	text-align: center;
+	width: 12em;
+	font-family: monospace;
+}

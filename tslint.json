@@ -1,0 +1,29 @@
+{
+	"defaultSeverity": "error",
+	"extends": ["tslint-config-prettier"],
+	"jsRules": {},
+	"rules": {
+		"no-var-keyword": true,
+		"yoda": true,
+		"member-access": true,
+		"member-ordering": [
+			true,
+			{
+				"order": "fields-first"
+			}
+		],
+		"prefer-const": [
+			true,
+			{
+				"destructuring": "all"
+			}
+		],
+		"no-unused-expression": true,
+		"no-unused-variable": true,
+		"no-unnecessary-qualifier": true,
+		"no-null-keyword": true,
+		"no-unnecessary-type-assertion": true,
+		"no-string-throw": true
+	},
+	"rulesDirectory": []
+}
