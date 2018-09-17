@@ -29,15 +29,24 @@
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-const { abs, atan2, cos, floor, log, max, round, sin, sqrt, PI } = Math
+const { abs, atan2, cos, floor, log, min, max, round, sign, sin, sqrt, cbrt, PI, hypot } = Math
+
+function lerp(a: number, b: number, f: number) {
+	return a + (b - a) * f
+}
+function lerpInv(a: number, b: number, f: number) {
+	return (f - a) / (b - a)
+}
+function clamp(x: number, min = 0, max = 1) {
+	return x < min ? min : x > max ? max : x
+}
 
 function newtonIterate1d(f: (x: number) => number, xStart: number, max_steps: number, eps: number = 1e-8): number {
 	let x = xStart,
 		fx
-	while (max_steps-- && Math.abs((fx = f(x))) > eps) {
+	while (max_steps-- && abs((fx = f(x))) > eps) {
 		const dfdx = (f(x + eps) - fx) / eps
 		console.log("fx / dfdx", fx / dfdx, "fx", fx, "x", x)
 		x = x - fx / dfdx
@@ -52,8 +61,8 @@ function bisect(f: (x: number) => number, a: number, b: number, steps: number) {
 	while (steps--) {
 		const c = (a + b) / 2
 		const fC = f(c)
-		console.log("fC", fC, "c", c)
-		if (Math.sign(fA) == Math.sign(fC)) {
+		// console.log("fC", fC, "c", c)
+		if (sign(fA) == sign(fC)) {
 			a = c
 			fA = fC
 		} else {
@@ -71,334 +80,30 @@ const TWOPI = 2 * PI
 const DEG2RAD = PI / 180
 
 const RAD2DEG = 180 / PI
-export class Color {
-	//public readonly r: number
-	//public readonly g: number
-	//public readonly b: number
-	private readonly _rgb: RGBA
-	/** internal */
-	constructor(rgb: RGB | RGBA) {
-		if (rgb.length == 3) {
-			rgb.push(1)
-		}
-		this._rgb = rgb as RGBA
-	}
-	public shade() {
-		const shades: [string, string, number][] = [
-			["ff0000", "red"],
-			["ffa500", "orange"],
-			["ffff00", "yellow"],
-			["008000", "green"],
-			["0000ff", "blue"],
-			["ee82ee", "violet"],
-			["a52a2a", "brown"],
-			["000000", "black"],
-			["808080", "grey"],
-			["ffffff", "white"],
-		] as any
-		function angleDiff(a: number, b: number) {
-			const d = (a - b) % 360
-			if (d > 180) return d - 360
-			if (d < -180) return d + 360
-			return d
-		}
-		shades.forEach(arr => arr.push(chroma(arr[0]).hsl()[0]))
-		const [h, s, l] = this.hsl()
-		if (l > 0.9) return "white"
-		//return withMax(shades, ([_hex, _name, _hue]) => {
-		//	return -Math.abs(angleDiff(this.hsl()[0], _hue))
-		//})[1]
-		return withMax(shades, ([_hex, _name, _hue]) => {
-			const [thisL, thisA, thisB] = this.lab()
-			const [L, A, B] = chroma(_hex).lab()
-			return -Math.hypot(thisL - L, thisA - A, thisB - B)
-		})[1]
-	}
-	public interpolate(col2: Chromable, f: number, m?: ColorMode) {
-		return chroma.interpolate(this, col2, f, m)
-	}
-	public rgb(round = true): RGB {
-		return (round ? this._rgb.map(Math.round) : this._rgb).slice(0, 3) as RGB
-	}
-	public rgba(round = true, clamp_ = true): RGBA {
-		const f = (t: number) => {
-			if (round) t = Math.round(t)
-			if (clamp_) t = clamp(t, 0, 255)
-			return t
-		}
-		return [f(this._rgb[0]), f(this._rgb[1]), f(this._rgb[2]), this._rgb[3]]
-	}
-
-	public hex(mode: "rgb" | "rgba" | "argb" = "rgb") {
-		return rgb2hex(this._rgb, mode)
-	}
-
-	public hsl(): HSL {
-		const [r, g, b] = this._rgb
-		return rgb2hsl(r, g, b)
-	}
-
-	public hsv() {
-		const [r, g, b] = this._rgb
-		return rgb2hsv(r, g, b)
-	}
-
-	public hcg() {
-		const [r, g, b] = this._rgb
-		return rgb2hcg(r, g, b)
-	}
-
-	public css(mode: "rgb" | "hsl" = "rgb") {
-		if ("rgb" == mode) {
-			const [r, g, b, a] = this._rgb
-			return rgb2css(r, g, b, a)
-		} else if ("hsl" == mode) {
-			return hsl2css(this.hsl(), this.alpha())
-		} else {
-			throw new Error()
-		}
-	}
-
-	public name(closest: true): string
-	/**
-	 * Get the name of a color. By default, this method will try to match the color exactly (comparing rounded RGB
-	 * values). Pass `true` to return the name of the color which is closest to `this` in CIELAB color space. CIELAB is
-	 * used as it is perceptually uniform.
-	 * @param closest Whether this should find the closest color name. Defaults to false.
-	 * @return If `closest == false`, the name of this color or `undefined` if there is no match. Otherwise, will always
-	 * return a color name.
-	 * @example chroma('#ff0000').name() // "red"
-	 * @example chroma('#ff0001').name() // undefined
-	 * @example chroma('#ff0001').name(true) // "red"
-	 */
-	public name(closest?: boolean): string | undefined
-	public name(closest: boolean = false): string | undefined {
-		const num = this.num()
-		const name = Object.keys(chroma.w3cx11).find(name => (chroma.w3cx11 as any)[name] == num)
-		if (!name && closest) {
-			const [thisLStar, thisAStar, thisBStar] = this.lab()
-			return withMax(Object.keys(chroma.w3cx11) as (keyof typeof chroma.w3cx11)[], name => {
-				const [lStar, aStar, bStar] = chroma.num(chroma.w3cx11[name]).lab()
-				return -Math.hypot(thisLStar - lStar, thisAStar - aStar, thisBStar - bStar)
-			})
-		}
-		return name
-	}
-
-	public cmyk() {
-		const [r, g, b] = this._rgb
-		return rgb2cmyk(r, g, b)
-	}
-
-	public gl(): GL {
-		const [r, g, b, a] = this._rgb
-		return [r / 255, g / 255, b / 255, a]
-	}
-
-	/**
-	 * Get luminance of the color. This is equal to the Y channel of the XYZ color space.
-	 * @example chroma('black').luminance() // 0
-	 * @example chroma('white').luminance() // 1
-	 * @example chroma('red').luminance() // ~0.21
-	 * @see https://en.wikipedia.org/wiki/Relative_luminance
-	 */
-	public luminance(): number
-	/**
-	 * Return a new [Color] with `lum0_1` by linearly interpolating `this` with white (when increasing the luminance) or
-	 * black (otherwise) in the [XYZ] color space.
-	 * @see https://en.wikipedia.org/wiki/Relative_luminance
-	 * @example // Approximately doubling the luminance of red
-	 * chroma('red').luminance(0.4) // #ff8686, "Vivid Tangerine"
-	 * @param lum0_1 The desired luminance.
-	 */
-	public luminance(lum0_1: number): this
-	public luminance(lum0_1?: number) {
-		const [r, g, b, alpha] = this._rgb
-		const [, Y] = rgb2xyz(r, g, b)
-		if (undefined === lum0_1) {
-			return Y
-		}
-		const inverseLerp = (a: number, b: number, val: number) => (val - a) / (b - a)
-		if (lum0_1 > Y) {
-			// lerp to white
-			return chroma.interpolate(this, chroma("white"), inverseLerp(Y, 1, lum0_1), "xyz").alpha(alpha)
-		} else {
-			// lerp to black
-			return chroma.interpolate(chroma("black"), this, inverseLerp(0, Y, lum0_1), "xyz").alpha(alpha)
-		}
-	}
-
-	/**
-	 * Get color temperature of this color in Kelvin. This only ma TODO
-	 */
-	public temperature() {
-		const [r, g, b] = this._rgb
-		return rgb2kelvin(r, g, b)
-	}
-
-	//public get(modeAndChannel: string) {
-	//	const [mode, channel] = modeAndChannel.split(".") as [ColorMode, string]
-	//	const src = this[mode]()
-	//	if (channel) {
-	//		const i = mode.indexOf(channel)
-	//		if (-1 == i) throw new Error("invalid channel")
-	//		return src[i]
-	//	} else {
-	//		return src
-	//	}
-	//}
-
-	public set(modeAndChannel: string, value: string | number) {
-		const [mode, channel] = modeAndChannel.split(".") as [ColorMode, string]
-		let src
-		if (channel) {
-			src = this[mode]()
-			const i = mode.indexOf(channel)
-			if (-1 == i) throw new Error("invalid channel")
-			if ("string" == typeof value) {
-				switch (value.charAt(0)) {
-					case "+":
-					case "-":
-						src[i] += +value
-						break
-					case "*":
-						src[i] *= +value.substr(1)
-						break
-					case "/":
-						src[i] /= +value.substr(1)
-						break
-					default:
-						src[i] = +value
-				}
-			} else {
-				src[i] = value
-			}
-		} else {
-			src = value
-		}
-		const rgba = _input[mode](src) as RGBA
-		rgba[3] = this.alpha()
-		return new Color(rgba)
-	}
-
-	public clipped() {
-		const [r, g, b] = this._rgb
-		return !(0 <= r && r <= 255 && (0 <= g && g <= 255) && (0 <= b && b <= 255))
-	}
-
-	/**
-	 * Returns black or white, whichever has the highest contrast to [this].
-	 */
-	public textColor() {
-		return this.luminance() > 0.5 ? chroma.black : chroma.white
-	}
-
-	/**
-	 * Get alpha value of color.
-	 * @example chroma.rgb(0, 0, 255, 0.5).alpha() // 0.5
-	 */
-	public alpha(): number
-	/**
-	 * Return new [Color] with given alpha value.
-	 * @example chroma('green').alpha(0.3).hex('rgba') // "#00ff004d"
-	 * @param alpha0_1 The desired alpha value.
-	 */
-	public alpha(alpha0_1: number): Color
-	public alpha(alpha0_1?: number): number | Color {
-		if (undefined === alpha0_1) {
-			return this._rgb[3]
-		}
-		const [r, g, b] = this._rgb
-		return chroma.rgb(r, g, b, alpha0_1)
-	}
-
-	public darker(amount = 1) {
-		const [l, a, b] = this.lab()
-		return chroma.lab(l - LAB_Kn * amount, a, b, this.alpha())
-	}
-
-	public brighter(amount = 1) {
-		return this.darker(-amount)
-	}
-
-	public saturate(amount = 1) {
-		const [l, c, h] = this.lch()
-		return chroma.lch(l, max(0, c + amount * LAB_Kn), h, this.alpha())
-	}
-
-	public desaturate(amount = 1) {
-		return this.saturate(-amount)
-	}
-
-	public premultiplied() {
-		const [r, g, b, a] = this._rgb
-		return chroma.rgb(r * a, g * a, b * a, a)
-	}
-
-	public hsi() {
-		const [r, g, b] = this._rgb
-		return rgb2hsi(r, g, b)
-	}
-	public lab() {
-		const [r, g, b] = this._rgb
-		return rgb2lab(r, g, b)
-	}
-
-	public num() {
-		const [r, g, b] = this._rgb
-		return rgb2num(r, g, b)
-	}
-	public lch() {
-		const [r, g, b] = this._rgb
-		return rgb2lch(r, g, b)
-	}
-
-	public hcl(): HCL {
-		const [r, g, b] = this._rgb
-		return rgb2lch(r, g, b).reverse() as HCL
-	}
-
-	public xyz() {
-		const [r, g, b] = this._rgb
-		return rgb2xyz(r, g, b)
-	}
-
-	public equals(color: Color) {
-		const [r, g, b, a] = this._rgb
-		const [r2, g2, b2, a2] = color._rgb
-		return r == r2 && g == g2 && b == b2 && a == a2
-	}
-}
-export interface Color {
-	mix(col2: Chromable, f: number, m: ColorMode): Color
-	toString(): string
-	//darker(amount: number): Color
-	//brighter(amount: number): Color
-	kelvin(): number
-}
-Color.prototype.mix = Color.prototype.interpolate
-Color.prototype.toString = Color.prototype.hex
-
-//Color.prototype.darker = Color.prototype.darken
-//Color.prototype.brighter = Color.prototype.brighten
-
-Color.prototype.kelvin = Color.prototype.temperature
-
-function lerp(a: number, b: number, f: number) {
-	return a + (b - a) * f
-}
-function clamp(x: number, min = 0, max = 1) {
-	return x < min ? min : x > max ? max : x
-}
-export type Chromable = number | string | Color | number[]
-
-function chroma(x: Chromable): Color
-function chroma(red: number, green: number, blue: number, alpha?: number): Color
-function chroma(x: Chromable, format: ColorFormat): Color
-function chroma(channel0: number, channel1: Color, channel2: number, format: ColorFormat): Color
-function chroma(channel0: number, channel1: Color, channel2: number, channel3: number, format: ColorFormat): Color
+/**
+ * @param alpha1 default=1
+ * @example chroma(99, 99, 44, 0.7)
+ */
+function chroma(red255: number, green255: number, blue255: number, alpha1?: number): chroma.Color
+/**
+ * @example chroma('mediumorchid') // a css string
+ * @example chroma([56, 203, 30]) // a RGB triple
+ * @example chroma(0x4b0082) // a hex num
+ * @example chroma([30, 0.8, 0.3], 'hsl') // explicit format
+ */
+function chroma(x: chroma.Chromable, format?: ColorFormat): chroma.Color
+/** @example chroma(30, 0.8, 0.3, 'hsl') */
+function chroma(channel0: number, channel1: chroma.Color, channel2: number, format: ColorFormat): chroma.Color
+/** @example chroma(0.3, 0.8, 0.3, 1, 'gl') */
+function chroma(
+	channel0: number,
+	channel1: chroma.Color,
+	channel2: number,
+	channel3: number,
+	format: ColorFormat,
+): chroma.Color
 function chroma(...args: any[]) {
-	if (args[0] instanceof Color) {
+	if (args[0] instanceof chroma.Color) {
 		return args[0]
 	}
 	if (args.length > 1 && "string" == typeof args[args.length - 1]) {
@@ -412,8 +117,462 @@ function chroma(...args: any[]) {
 export default chroma
 export { chroma }
 namespace chroma {
-	export const black = new Color([0, 0, 0, 1])
-	export const white = new Color([255, 255, 255, 1])
+	/**
+	 * A Chromable is any value which can be converted to a color. For ease of use, most functions accept these instead of
+	 * only Color values.
+	 */
+	export type Chromable = number | string | Color | number[]
+
+	export class Color {
+		/** @internal */
+		constructor(
+			private readonly r: number,
+			private readonly g: number,
+			private readonly b: number,
+			private readonly a = 1,
+		) {}
+
+		// public shade() {
+		// 	const shades: [string, string, number][] = [
+		// 		["ff0000", "red"],
+		// 		["ffa500", "orange"],
+		// 		["ffff00", "yellow"],
+		// 		["008000", "green"],
+		// 		["0000ff", "blue"],
+		// 		["ee82ee", "violet"],
+		// 		["a52a2a", "brown"],
+		// 		["000000", "black"],
+		// 		["808080", "grey"],
+		// 		["ffffff", "white"],
+		// 	] as any
+		// 	function angleDiff(a: number, b: number) {
+		// 		const d = (a - b) % 360
+		// 		if (d > 180) return d - 360
+		// 		if (d < -180) return d + 360
+		// 		return d
+		// 	}
+		// 	shades.forEach(arr => arr.push(chroma(arr[0]).hsl()[0]))
+		// 	const [h, s, l] = this.hsl()
+		// 	if (l > 0.9) return "white"
+		// 	if (l > 0.8 && s < 0.2) return "white"
+		// 	if (s < 0.1) return "grey"
+		// 	if (s < 0.4 && h > 0 && h < 48) return "brown"
+
+		// 	const distanceInXYZ: { [hue: number]: number } = { 0: 0 }
+		// 	for (let i = 60; i <= 360; i += 60) {
+		// 		distanceInXYZ[i] =
+		// 			distanceInXYZ[i - 60] + chroma.distance(chroma.hsl(i - 60, 1, 0.5), chroma.hsl(i, 1, 0.5), "xyz")
+		// 	}
+		// 	// console.log(distanceInXYZ)
+
+		// 	const shadeEnds: { [hue: number]: number } = {
+		// 		0: 9,
+		// 		38: 48,
+		// 		60: 65,
+		// 		120: 165,
+		// 		240: 245,
+		// 		300: 338,
+		// 		360: 369,
+		// 	}
+
+		// 	const getColorDistanceAlongXYZHue = (hueDegrees: number) => {
+		// 		const base = hueDegrees - (hueDegrees % 60)
+		// 		return (
+		// 			distanceInXYZ[base] + chroma.distance(chroma.hsl(base, 1, 0.5), chroma.hsl(hueDegrees, 1, 0.5), "xyz")
+		// 		)
+		// 	}
+		// 	const colorXYZD = getColorDistanceAlongXYZHue(this.hsl()[0])
+		// 	const md = distanceInXYZ[360]
+		// 	const shadeHue =
+		// 		(Object.keys(shadeEnds) as any[]).find(shadeHue => shadeEnds[shadeHue | 0] >= this.hsl()[0])! % 360
+		// 	return shades.find(([_hex, _name, _hue]) => (_hue | 0) === shadeHue)![1]
+		// 	// process.exit()
+		// 	return withMax(shades, ([_hex, _name, _hue]) => {
+		// 		return -abs(angleDiff(this.hsl()[0], _hue))
+		// 	})[1]
+		// 	return withMax(shades, ([_hex, _name, _hue]) => {
+		// 		const [thisL, thisA, thisB] = this.lab()
+		// 		const [L, A, B] = chroma(_hex).lab()
+		// 		return -hypot(thisL - L, thisA - A, thisB - B)
+		// 	})[1]
+		// }
+
+		/**
+		 * @see [[chroma.mix]]
+		 */
+		public mix(col2: Chromable, f: number, m: InterpolationMode = "rgb") {
+			return chroma.mix(this, col2, f, m)
+		}
+		public rgb(doRound = true, clamp_ = true): RGB {
+			const f = (t: number) => {
+				if (doRound) t = round(t)
+				if (clamp_) t = clamp(t, 0, 255)
+				return t
+			}
+			const { r, g, b } = this
+			return [f(r), f(g), f(b)]
+		}
+		public rgba(doRound = true, clamp_ = true): RGBA {
+			const f = (t: number) => {
+				if (doRound) t = round(t)
+				if (clamp_) t = clamp(t, 0, 255)
+				return t
+			}
+			const { r, g, b, a } = this
+			return [f(r), f(g), f(b), a]
+		}
+
+		/**
+		 * Return a hex-string representation of this color.
+		 *
+		 * @param mode
+		 * @see #num for a hex-number representation.
+		 * @example chroma('yellow').alpha(0.7).hex()
+		 * @example chroma('yellow').alpha(0.7).hex('rgba')
+		 * @example chroma('yellow').alpha(0.7).hex('argb')
+		 */
+		public hex(mode: "rgb" | "rgba" | "argb" = "rgb") {
+			const { r, g, b, a } = this
+			return rgb2hex(r, g, b, a, mode)
+		}
+
+		/**
+		 * Returns the [HSL] representation of this color. hue will always be in [0;360). Values are never NaN.
+		 *
+		 * @example chroma('purple').hsl()
+		 */
+		public hsl(): HSL {
+			const { r, g, b } = this
+			return rgb2hsl(r, g, b)
+		}
+
+		/**
+		 * Returns the [HSL] representation of this color. hue will always be in [0;360). Values are never NaN.
+		 *
+		 * @example chroma('purple').hsv()
+		 */
+		public hsv() {
+			const { r, g, b } = this
+			return rgb2hsv(r, g, b)
+		}
+
+		/**
+		 * Returns the [HSL] representation of this color. hue will always be in [0;360). Values are never NaN.
+		 *
+		 * @example chroma('purple').hcg()
+		 */
+		public hcg() {
+			const { r, g, b } = this
+			return rgb2hcg(r, g, b)
+		}
+
+		/**
+		 * Returns a CSS `rgb(...)` or `hsl(...)` string representation that can be used as CSS-color definition. The alpha
+		 * value is not output if it 1.
+		 * @example chroma('teal').css() // == "rgb(0,128,128)"
+		 * @example chroma('teal').alpha(0.5).css() // == "rgba(0,128,128,0.5)"
+		 * @example chroma('teal').css('hsl') // == "hsl(180,100%,25.1%)"
+		 */
+		public css(mode: "rgb" | "hsl" = "rgb") {
+			if ("rgb" == mode) {
+				const { r, g, b, a } = this
+				return rgb2css(r, g, b, a)
+			} else if ("hsl" == mode) {
+				return hsl2css(this.hsl(), this.alpha())
+			} else {
+				throw new Error()
+			}
+		}
+
+		public name(closest: true): string
+		/**
+		 * Get the name of a color. By default, this method will try to match the color exactly (comparing rounded RGB
+		 * values). Pass `true` to return the name of the color which is closest to `this` in CIELAB color space. CIELAB is
+		 * used as it is perceptually uniform.
+		 * @param closest Whether this should find the closest color name. default=false
+		 * @return If `closest == false`, the name of this color or `undefined` if there is no match. Otherwise, will always
+		 * return a color name.
+		 * @example chroma('#ff0000').name() // == "red"
+		 * @example chroma('#ff0001').name() // == undefined
+		 * @example chroma('#ff0001').name(true) // == "red"
+		 */
+		public name(closest?: boolean): string | undefined
+		public name(closest: boolean = false): string | undefined {
+			const num = this.num()
+			const name = Object.keys(chroma.w3cx11).find(name => (chroma.w3cx11 as any)[name] == num)
+			if (!name && closest) {
+				const [thisLStar, thisAStar, thisBStar] = this.lab()
+				return withMax(Object.keys(chroma.w3cx11) as (keyof typeof chroma.w3cx11)[], name => {
+					const [lStar, aStar, bStar] = chroma.num(chroma.w3cx11[name]).lab()
+					return -hypot(thisLStar - lStar, thisAStar - aStar, thisBStar - bStar)
+				})
+			}
+			return name
+		}
+
+		/**
+		 * Get the [CMYK](#chroma.CMYK) representation of this color.
+		 *
+		 * @example chroma('red').cmyk()
+		 */
+		public cmyk() {
+			const { r, g, b } = this
+			return rgb2cmyk(r, g, b)
+		}
+
+		/**
+		 * Returns the [GL] representation of this color.
+		 * @example chroma('33cc00').gl()
+		 */
+		public gl(): GL {
+			const { r, g, b, a } = this
+			return [r / 255, g / 255, b / 255, a]
+		}
+
+		/**
+		 * Get luminance of the color. This is equal to the Y channel of the XYZ color space.
+		 * @example chroma('black').luminance() // == 0
+		 * @example chroma('white').luminance() // == 1
+		 * @example chroma('red').luminance() // == ~0.21
+		 * @see https://en.wikipedia.org/wiki/Relative_luminance
+		 */
+		public luminance(): number
+		/**
+		 * Return a new [Color] with `lum1` by linearly interpolating `this` with white (when increasing the luminance) or
+		 * black (otherwise) in the [XYZ] color space.
+		 * @see https://en.wikipedia.org/wiki/Relative_luminance
+		 * @example // Approximately doubling the luminance of red
+		 * @example chroma('red').luminance(0.4) // == #ff8686 // "Vivid Tangerine"
+		 * @param lum1 The desired luminance.
+		 */
+		public luminance(lum1: number): this
+		public luminance(lum1?: number) {
+			const { r, g, b, a } = this
+			const [, Y] = rgb2xyz(r, g, b)
+			if (undefined === lum1) {
+				return Y
+			}
+			const inverseLerp = (a: number, b: number, val: number) => (val - a) / (b - a)
+			if (lum1 > Y) {
+				// lerp to white
+				return chroma.mix(this, chroma("white"), inverseLerp(Y, 1, lum1), "xyz").alpha(a)
+			} else {
+				// lerp to black
+				return chroma.mix(chroma("black"), this, inverseLerp(0, Y, lum1), "xyz").alpha(a)
+			}
+		}
+
+		/**
+		 * Get color temperature of this color in Kelvin. This only makes sense for colors close to those output by
+		 * chroma.kelvin
+		 *
+		 * @example [c = chroma('#ff3300'), c.temperature()]
+		 * @example [c = chroma('#ffe3cd'), c.temperature()]
+		 * @example [c = chroma('#b3ccff'), c.temperature()]
+		 */
+		public temperature() {
+			const { r, g, b } = this
+			return rgb2kelvin(r, g, b)
+		}
+
+		/**
+		 * Returns a new [Color] with a channel changed.
+		 * @example chroma('skyblue').set('hsl.h', 0) // change hue to 0 deg (=red)
+		 * @example chroma('hotpink').set('lch.c', 30) // set chromaticity to 30
+		 * @example chroma('orangered').set('lab.l', x => x / 2) // half Lab lightness
+		 * @example chroma('darkseagreen').set('lch.c', x => x * 2) // double Lch saturation
+		 */
+		public set(modeAndChannel: string, value: number | ((channel: number) => number)) {
+			const [mode, channel] = modeAndChannel.split(".") as [ColorMode, string]
+			const src = this[mode]()
+			const i = mode.indexOf(channel)
+			if (-1 == i) throw new Error("invalid channel")
+			src[i] = "number" == typeof value ? value : value(src[i])
+			return chroma(src, mode).alpha(this.a)
+		}
+
+		/**
+		 * Returns whether this color is outside the RGB color cube and will be clipped/clamped when calling .rgb()
+		 *
+		 * @example [c = chroma.lch( 20, 40, 50), c.clipped()]
+		 * @example [c = chroma.lch( 40, 40, 50), c.clipped()]
+		 * @example [c = chroma.lch( 60, 40, 50), c.clipped()]
+		 * @example [c = chroma.lch( 80, 40, 50), c.clipped()]
+		 * @example [c = chroma.lch(100, 40, 50), c.clipped()]
+		 */
+		public clipped() {
+			const { r, g, b } = this
+			return !(0 <= r && r <= 255 && (0 <= g && g <= 255) && (0 <= b && b <= 255))
+		}
+
+		/**
+		 * Returns black or white, whichever has the highest contrast to `this`.
+		 * In the readme you should see the result of this.
+		 *
+		 * @example chroma('red')
+		 * @example chroma('yellow')
+		 */
+		public textColor() {
+			return this.luminance() > 0.5 ? chroma.black : chroma.white
+		}
+
+		/**
+		 * Get alpha value of color.
+		 * @example chroma.rgb(0, 0, 255, 0.5).alpha() // == 0.5
+		 */
+		public alpha(): number
+		/**
+		 * Return new [Color] with given alpha value.
+		 * @example chroma('green').alpha(0.3)
+		 * @example chroma('green').alpha(0.3).hex('rgba') // == "#00ff004d"
+		 * @param alpha1 The desired alpha value.
+		 */
+		public alpha(alpha1: number): Color
+		public alpha(alpha1?: number): number | Color {
+			if (undefined === alpha1) {
+				return this.a
+			}
+			const { r, g, b } = this
+			return chroma.rgb(r, g, b, alpha1)
+		}
+
+		public darker(amount = 1) {
+			const [l, a, b] = this.lab()
+			return chroma.lab(l - LAB_Kn * amount, a, b, this.alpha())
+		}
+
+		/**
+		 *
+		 * @param amount
+		 * @example chroma('hotpink')
+		 * @example chroma('hotpink').brighter()
+		 * @example chroma('hotpink').brighter(2)
+		 * @example chroma('hotpink').brighter(3)
+		 */
+		public brighter(amount = 1) {
+			return this.darker(-amount)
+		}
+
+		/**
+		 * Returns a new [Color] with increased saturation.
+		 * @param amount How much.
+		 * @example chroma('slategray')
+		 * @example chroma('slategray').saturate()
+		 * @example chroma('slategray').saturate(2)
+		 * @example chroma('slategray').saturate(3)
+		 */
+		public saturate(amount = 1) {
+			const [l, c, h] = this.lch()
+			return chroma.lch(l, max(0, c + amount * LAB_Kn), h, this.alpha())
+		}
+
+		/**
+		 * Equivalent to `saturate(-amount)`.
+		 * @see #saturate
+		 */
+		public desaturate(amount = 1) {
+			return this.saturate(-amount)
+		}
+
+		public premultiplied() {
+			const { r, g, b, a } = this
+			return chroma.rgb(r * a, g * a, b * a, a)
+		}
+
+		/**
+		 * Returns the [HSI] representation of this color. hue will always be in [0; 360). Values are never NaN.
+		 *
+		 * @example chroma('purple').hsi()
+		 */
+		public hsi() {
+			const { r, g, b } = this
+			return rgb2hsi(r, g, b)
+		}
+
+		/**
+		 * Returns the [LAB] representation of this color.
+		 *
+		 * @example chroma('purple').lab()
+		 */
+		public lab() {
+			const { r, g, b } = this
+			return rgb2lab(r, g, b)
+		}
+
+		/**
+		 * Return a hex-num of this color.
+		 *
+		 * @param mode
+		 * @see #num for a hex-number representation.
+		 * @example chroma('yellow').alpha(0.7).hex()
+		 * @example chroma('yellow').alpha(0.7).hex('rgba')
+		 * @example chroma('yellow').alpha(0.7).hex('argb')
+		 */
+		public num(mode: "rgb" | "rgba" | "argb" = "rgb") {
+			const { r, g, b, a } = this
+			return rgb2num(r, g, b, a, mode)
+		}
+
+		/**
+		 * Returns the [LCH] representation of this color. hue will always be in [0; 360). Values are never NaN.
+		 *
+		 * @example chroma('purple').lch()
+		 */
+		public lch() {
+			const { r, g, b } = this
+			return rgb2lch(r, g, b)
+		}
+
+		/**
+		 * Returns the [XYZ] representation of this color. hue will always be in [0; 360). Values are never NaN.
+		 *
+		 * @example chroma('purple').xyz()
+		 */
+		public xyz() {
+			const { r, g, b } = this
+			return rgb2xyz(r, g, b)
+		}
+
+		/**
+		 * Whether this [Color](#chroma.Color) is identical (strict equality of r, g, b, a) to `color`.
+		 */
+		public equals(color: Color) {
+			const { r, g, b, a } = this
+			const { r: r2, g: g2, b: b2, a: a2 } = color
+			return r == r2 && g == g2 && b == b2 && a == a2
+		}
+
+		public hashCode() {
+			return this.num("rgba")
+		}
+
+		/**
+		 * @example chroma('red').toSource() // == "chroma.rgb(255, 0, 0)"
+		 * @example chroma.rgb(-2, 100.02, 200, 0.5).toSource() // == "chroma.rgb(-2, 100.02, 200, 0.5)"
+		 */
+		public toSource() {
+			const { r, g, b, a } = this
+			return "chroma.rgb(" + r + ", " + g + ", " + b + (a === 1 ? ")" : ", " + a + ")")
+		}
+	}
+	export interface Color {
+		toString(): string
+		//darker(amount: number): Color
+		//brighter(amount: number): Color
+		kelvin(): number
+	}
+	Color.prototype.toString = Color.prototype.css
+	Color.prototype.kelvin = Color.prototype.temperature
+	/**
+	 * @example chroma.black
+	 */
+	export const black = new Color(0, 0, 0, 1)
+
+	/**
+	 * @example chroma.black
+	 */
+	export const white = new Color(255, 255, 255, 1)
+
 	export const brewer = {
 		OrRd: [0xfff7ec, 0xfee8c8, 0xfdd49e, 0xfdbb84, 0xfc8d59, 0xef6548, 0xd7301f, 0xb30000, 0x7f0000],
 		PuBu: [0xfff7fb, 0xece7f2, 0xd0d1e6, 0xa6bddb, 0x74a9cf, 0x3690c0, 0x0570b0, 0x045a8d, 0x023858],
@@ -590,6 +749,8 @@ namespace chroma {
 	/**
 	 * X11 color names
 	 * http://www.w3.org/TR/css3-color/#svg-color
+	 *
+	 * @example Object.keys(chroma.w3cx11).slice(0, 4)
 	 */
 	export const w3cx11 = {
 		aliceblue: 0xf0f8ff,
@@ -748,10 +909,41 @@ namespace chroma {
 		yellow: 0xffff00,
 		yellowgreen: 0x9acd32,
 	}
-	interface CubeHelix {
+
+	/**
+	 * Return a new [[CubeHelix]].
+	 *
+	 * @example chroma.cubehelix() // use the default helix
+	 * @example chroma.cubehelix().start(200).rotations(-0.5).gamma(0.8).lightness([0.3, 0.8])
+	 */
+	export function cubehelix(
+		start = 300,
+		rotations = -1.5,
+		hue: number | [number, number] = 1,
+		gamma = 1,
+		lightness: number | [number, number] = [0, 1],
+	) {
+		const f: CubeHelix = (t => f.at(t)) as CubeHelix
+		;(Object.getOwnPropertyNames(CubeHelix.prototype) as (keyof typeof CubeHelix)[]).forEach(
+			key => (f[key] = CubeHelix.prototype[key]),
+		)
+		f.start(start)
+		f.rotations(rotations)
+		f.hue(hue)
+		f.gamma(gamma)
+		f.lightness(lightness)
+		return f
+	}
+
+	/**
+	 * [Dave Green's cubehelix color scheme](http://www.mrao.cam.ac.uk/~dag/CUBEHELIX/)!
+	 *
+	 * A CubeHelix is a function defined on [0, 1] which returns colors.
+	 */
+	export interface CubeHelix {
 		(f: number): Color
 	}
-	class CubeHelix {
+	export class CubeHelix {
 		private _start!: number
 		private _rotations!: number
 		private _gamma!: number
@@ -792,39 +984,28 @@ namespace chroma {
 			this._lightness = Array.isArray(h) ? h : [h, h]
 			return this
 		}
+
+		/**
+		 * Convert to a [[Scale]].
+		 *
+		 * @example chroma.cubehelix().scale().correctLightness().domain(2, 22)
+		 */
 		public scale() {
-			return chroma.scale(this)
+			return scale(this)
 		}
+
 		public at(fract: number) {
 			const a = TWOPI * ((this._start + 120) / 360 + this._rotations * fract)
 			const l = lerp(this._lightness[0], this._lightness[1], fract) ** this._gamma
 			const h = lerp(this._hue[0], this._hue[1], fract)
 			const amp = (h * l * (1 - l)) / 2
-			const cos_a = Math.cos(a)
-			const sin_a = Math.sin(a)
+			const cos_a = cos(a)
+			const sin_a = sin(a)
 			const r = l + amp * (-0.14861 * cos_a + 1.78277 * sin_a)
 			const g = l + amp * (-0.29227 * cos_a - 0.90649 * sin_a)
 			const b = l + amp * (+1.97294 * cos_a)
-			return chroma.rgb([r * 255, g * 255, b * 255, 1])
+			return rgb([r * 255, g * 255, b * 255, 1])
 		}
-	}
-	export function cubehelix(
-		start = 300,
-		rotations = -1.5,
-		hue: number | [number, number] = 1,
-		gamma = 1,
-		lightness: number | [number, number] = [0, 1],
-	) {
-		const f: CubeHelix = (t => f.at(t)) as CubeHelix
-		;(Object.getOwnPropertyNames(CubeHelix.prototype) as (keyof typeof CubeHelix)[]).forEach(
-			key => (f[key] = CubeHelix.prototype[key]),
-		)
-		f.start(start)
-		f.rotations(rotations)
-		f.hue(hue)
-		f.gamma(gamma)
-		f.lightness(lightness)
-		return f
 	}
 
 	/**
@@ -843,125 +1024,219 @@ namespace chroma {
 	 *     create a deterministic sequence of "random" colors. Defaults to `Math.random`.
 	 * @example chroma.random((() => { let i = 0; return () => (i = (i *Math.SQRT2) % 1); })())
 	 */
-	export function randomLab(randomSource = Math.random) {
-		const labAMin = -87,
-			labAMax = 99,
-			labBMin = -108,
-			labBMax = 95
-		let maxIterations = 100
-		while (maxIterations--) {
-			const u = randomSource(),
-				v = randomSource(),
-				w = randomSource()
-			// The following matrix multiplication transform the random point (u v w) in the unit cube into the
-			// oriented bounding box (OBB) of the projection of the RGB space into the LAB space. This is necessary to
-			// avoid a huge number of misses.
-			const color = chroma.lab(
-				u * -53.903 + v * -88.755 + w * 71.7 + 99.707,
-				u * -82.784 + v * 187.036 + w * -2.422 + -28.17,
-				u * -75.813 + v * -141.406 + w * -48.261 + 152.469,
-			)
-			console.log(color.lab())
-			console.log(color.rgba(false, false))
-			if (!color.clipped()) return color
-		}
-		throw new Error("Could find a random color in 100 iterations")
-	}
+	// export function randomLab(randomSource = Math.random) {
+	// 	const labAMin = -87,
+	// 		labAMax = 99,
+	// 		labBMin = -108,
+	// 		labBMax = 95
+	// 	let maxIterations = 100
+	// 	while (maxIterations--) {
+	// 		const u = randomSource(),
+	// 			v = randomSource(),
+	// 			w = randomSource()
+	// 		// The following matrix multiplication transform the random point (u v w) in the unit cube into the
+	// 		// oriented bounding box (OBB) of the projection of the RGB space into the LAB space. This is necessary to
+	// 		// avoid a huge number of misses.
+	// 		const color = chroma.lab(
+	// 			u * -53.903 + v * -88.755 + w * 71.7 + 99.707,
+	// 			u * -82.784 + v * 187.036 + w * -2.422 + -28.17,
+	// 			u * -75.813 + v * -141.406 + w * -48.261 + 152.469,
+	// 		)
+	// 		console.log(color.lab())
+	// 		console.log(color.rgba(false, false))
+	// 		if (!color.clipped()) return color
+	// 	}
+	// 	throw new Error("Could find a random color in 100 iterations")
+	// }
 
-	export function interpolate(col1: Chromable, col2: Chromable, f = 0.5, m: InterpolationMode = "rgb") {
+	/**
+	 * Mixes two colors. The mix ratio is a value between 0 and 1.
+	 * The color mixing produces different results based the color space used for interpolation.
+	 *
+	 * @param col2
+	 * @param f
+	 * @param m
+	 * @example chroma.mix('red', 'blue')
+	 * @example chroma.mix('red', 'blue', 0.25)
+	 * @example chroma.mix('red', 'blue', 0.75)
+	 *
+	 * @example chroma.mix('red', 'blue', 0.5, 'rgb')
+	 * @example chroma.mix('red', 'blue', 0.5, 'hsl')
+	 * @example chroma.mix('red', 'blue', 0.5, 'lab')
+	 * @example chroma.mix('red', 'blue', 0.5, 'lch')
+	 * @example chroma.mix('red', 'blue', 0.5, 'lrgb')
+	 */
+	export function mix(col1: Chromable, col2: Chromable, f = 0.5, m: InterpolationMode = "rgb") {
 		const c1 = chroma(col1)
 		const c2 = chroma(col2)
-		const res = interpolators[m] && interpolators[m](c1, c2, f, m)
+		const res = interpolators[m] && ((interpolators as any)[m](c1, c2, f, m) as Color)
 		if (!res) {
 			throw new Error("color mode " + m + " is not supported")
 		}
 		return res.alpha(lerp(c1.alpha(), c2.alpha(), f))
 	}
 
-	export const mix = interpolate
-
+	/**
+	 * Parse a CSS color. See [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color) for all the possible
+	 * variants.
+	 *
+	 * @example chroma.css('hsl(2rad 90% 50% / 0.9)')
+	 * @example chroma.css('laserlemon')
+	 */
 	export function css(cssString: string) {
-		return new Color(css2rgb(cssString))
+		const [r, g, b, a] = css2rgb(cssString)
+		return new Color(r, g, b, a)
 	}
+
+	/**
+	 * @example chroma.cmyk(0.2, 0.8, 0, 0)
+	 * @example chroma(0.2, 0.8, 0, 0, 'cmyk')
+	 */
 	export function cmyk(cmyk: CMYK): Color
-	export function cmyk(cyan0_1: number, magenta0_1: number, yellow0_1: number, key0_1: number): Color
+	export function cmyk(cyan1: number, magenta1: number, yellow1: number, key1: number): Color
 	export function cmyk(...args: any[]) {
 		return guess(args, "cmyk")
 	}
+
+	/**
+	 * @example chroma.gl(1, 1, 0, 1)
+	 */
 	export function gl(gl: RGBA | RGB): Color
-	export function gl(red0_1: number, green0_1: number, blue0_1: number, alpha0_1?: number): Color
+	/**
+	 * @example chroma.gl([1, 0, 1, 0.5])
+	 */
+	export function gl(red1: number, green1: number, blue1: number, alpha1: number): Color
 	export function gl(...args: any[]) {
 		return guess(args, "gl")
 	}
+
 	export function hcg(hcg: HCG): Color
-	export function hcg(h: number, c: number, g: number): Color
+	/**
+	 * @param alpha1 default=1
+	 */
+	export function hcg(h: number, c: number, g: number, alpha1?: number): Color
 	export function hcg(...args: any[]) {
 		return guess(args, "hcg")
 	}
-	export function hcl(hcl: LAB): Color
-	export function hcl(h: number, c: number, l: number): Color
-	export function hcl(...args: any[]) {
-		return guess(args, "hcl")
-	}
+
 	export function lch(lch: LCH): Color
-	export function lch(h: number, c: number, l: number, alpha0_1?: number): Color
+	/**
+	 * @param alpha1 default=1
+	 */
+	export function lch(h: number, c: number, l: number, alpha1?: number): Color
 	export function lch(...args: any[]) {
 		return guess(args, "lch")
 	}
+
 	export function hsi(hsi: HSI): Color
-	export function hsi(h: number, s: number, i: number, alpha0_1?: number): Color
+	/**
+	 * @param alpha1 default=1
+	 */
+	export function hsi(h: number, s: number, i: number, alpha1?: number): Color
 	export function hsi(...args: any[]) {
 		return guess(args, "hsi")
 	}
+
 	export function hsl(hsl: HSL): Color
-	export function hsl(hueDegrees: number, saturation0_1: number, lightness0_1: number, alpha0_1?: number): Color
+	/**
+	 * @param alpha1 default=1
+	 * @example chroma.hsl(30, 1, 0.5)
+	 * @example chroma.hsl(30, 0.6, 0.5)
+	 */
+	export function hsl(hueDegrees: number, saturation1: number, lightness1: number, alpha1?: number): Color
 	export function hsl(...args: any[]) {
 		return guess(args, "hsl")
 	}
+
 	export function hsv(hsv: LAB): Color
 	export function hsv(h: number, s: number, v: number): Color
 	export function hsv(...args: any[]) {
 		return guess(args, "hsv")
 	}
+
+	/**
+	 *
+	 * @param temperature
+	 * @example chroma.kelvin(2000) // candle light
+	 * @example chroma.kelvin(3500) // sunset
+	 * @example chroma.kelvin(6500) // daylight
+	 * @example x0_1 => chroma.kelvin(x0_1 * 30000) // effective range: [0; 30000]
+	 */
 	export function kelvin(temperature: number) {
-		return new Color(kelvin2rgb(temperature))
+		const [r, g, b] = kelvin2rgb(temperature)
+		return new Color(r, g, b)
 	}
+
 	export function lab(lab: LAB): Color
-	export function lab(lightness1: number, a1: number, b: number, alpha0_1?: number): Color
+	/**
+	 * @param alpha1 default=1
+	 */
+	export function lab(lightness1: number, a1: number, b: number, alpha1?: number): Color
 	export function lab(...args: any[]) {
 		return guess(args, "lab")
 	}
+
+	/**
+	 * @example chroma.num(0x663399) // rebeccapurple
+	 */
 	export function num(num: number) {
-		return new Color(num2rgb(num))
+		const [r, g, b] = num2rgb(num)
+		return new Color(r, g, b)
 	}
+
 	export function rgb(rgb: RGBA | RGB): Color
+	/**
+	 * @param alpha1 default=1
+	 * @example chroma.rgb(0, 100, 200)
+	 */
 	export function rgb(red255: number, green255: number, blue255: number, alpha1?: number): Color
 	export function rgb(...args: any[]) {
 		return guess(args, "rgb")
 	}
+
 	export function xyz(xyz: XYZ): Color
+	/** @param alpha1 default=1 */
 	export function xyz(x1: number, y1: number, z1: number, alpha1?: number): Color
 	export function xyz(...args: any[]) {
 		return guess(args, "xyz")
 	}
 
+	/**
+	 * Similar to chroma.mix, but accepts more than two colors.
+	 *
+	 * @example colors = ['#ddd', 'yellow', 'red', 'teal']
+	 * @example chroma.average(colors) // default = 'rgb'
+	 * @example chroma.average(colors, 'lab')
+	 * @example chroma.average(colors, 'lch')
+	 * @example chroma.average(colors, 'lrgb')
+	 * @example chroma.average(['red', 'rgba(0,0,0,0.5)']).css()
+	 */
 	export function average(chromables: Chromable[], mode: InterpolationMode = "rgb") {
 		const colors = chromables.map(c => chroma(c))
 		if (mode == "lrgb") {
 			return _average_lrgb(colors)
 		}
+		if (mode == "num") {
+			let numSum = 0,
+				alphaSum = 0
+			for (const col of colors) {
+				numSum += col.num()
+				alphaSum += col.alpha()
+			}
+			return num(numSum / colors.length).alpha(alphaSum / colors.length)
+		}
 		const xyz = [0, 0, 0]
 		let dx = 0
 		let dy = 0
-		let alpha = 0
+		let alphaSum = 0
 		for (const c of colors) {
 			const xyz2 = c[mode]()
-			alpha += c.alpha()
+			alphaSum += c.alpha()
 			for (let i = 0; i < xyz.length; i++) {
 				if (mode.charAt(i) == "h") {
 					const A = (xyz2[i] / 180) * PI
-					dx += Math.cos(A)
-					dy += Math.sin(A)
+					dx += cos(A)
+					dy += sin(A)
 				} else {
 					xyz[i] += xyz2[i]
 				}
@@ -975,9 +1250,15 @@ namespace chroma {
 				xyz[i] = xyz[i] / colors.length
 			}
 		}
-		return guess(xyz, mode).alpha(alpha / colors.length)
+		return guess(xyz, mode).alpha(alphaSum / colors.length)
 	}
 
+	/**
+	 *
+	 * @param chromables
+	 * @example chroma.scale('black', 'red', 'gold') // linear interpolation
+	 * @example chroma.bezier('black', 'red', 'gold') // bezier interpolation
+	 */
 	export function bezier(chromables: Chromable[]): { (t: number): Color; scale(): Scale }
 	export function bezier(...chromables: Chromable[]): { (t: number): Color; scale(): Scale }
 	export function bezier(...args: any[]) {
@@ -987,27 +1268,67 @@ namespace chroma {
 		return f
 	}
 
-	export function blend(bottom: Chromable, top: Chromable, mode: keyof typeof blend_fs) {
+	/**
+	 * Blends two colors using RGB channel-wise blend functions.
+	 * @param bottom
+	 * @param top
+	 * @param mode
+	 * @example chroma.blend('4CBBFC', 'EEEE22', 'multiply')
+	 * @example chroma.blend('4CBBFC', 'EEEE22', 'darken')
+	 * @example chroma.blend('4CBBFC', 'EEEE22', 'lighten')
+	 */
+	export function blend(bottom: Chromable, top: Chromable, mode: BlendMode) {
 		if (!blend_fs[mode]) {
 			throw new Error("unknown blend mode " + mode)
 		}
 		return blend_fs[mode](bottom, top)
 	}
-
+	export type BlendMode = keyof typeof blend_fs
 	namespace blend_fs {
 		export const normal = blend_f(each((a, _) => a))
 		export const multiply = blend_f(each((a, b) => (a * b) / 255))
 		export const screen = blend_f(each(_screen))
 		export const overlay = blend_f(each(_overlay))
-		export const darken = blend_f(each(Math.min))
-		export const lighten = blend_f(each(Math.max))
+		export const darken = blend_f(each(min))
+		export const lighten = blend_f(each(max))
 		export const dodge = blend_f(each(_dodge))
 		export const burn = blend_f(each(_burn))
 	}
-	interface Scale {
-		(val: number): Color
+
+	/**
+	 * @param colors
+	 * @example scale = chroma.scale(['yellow', '008ae5'])
+	 * @example scale(0.25)
+	 * @example scale(0.5)
+	 * @example scale(0.75)
+	 * @example chroma.scale('Viridis')
+	 */
+	export function scale(colors: Chromable[] | keyof typeof brewer | ((f: number) => Color)): Scale
+	export function scale(...colors: Chromable[]): Scale
+	export function scale(...args: any[]) {
+		const f: Scale = (t => (f as any)._at(t)) as Scale
+		;(Object.getOwnPropertyNames(Scale.prototype) as (keyof typeof Scale)[]).forEach(
+			key => (f[key] = Scale.prototype[key]),
+		)
+		if (Array.isArray(args[0])) args = args[0]
+		if (args.length == 1 && "string" == typeof args[0]) args = brewer[args[0] as keyof typeof brewer]
+		;(f as any)._init("function" == typeof args[0] ? args[0] : args.map(a => chroma(a)))
+		//f.setColors(args.length > 1 ? args : args[0])
+		return f
 	}
-	class Scale {
+	/**
+	 * A color scale, created with chroma.scale, is a function that maps numeric values to a color palette.
+	 *
+	 * The type parameter describes the output type and can be changed with out(). Defaults to Color objects.
+	 *
+	 * @param T The output format. default=Color
+	 * @example chroma.scale('Purples')
+	 * @example chroma.scale('Purples')(0.4)
+	 */
+	export interface Scale<T = Color> {
+		(val: number): T
+	}
+	export class Scale<T = Color> {
 		private _colors!: Color[] | ((t: number) => Color)
 		private _classes!: number[] | undefined
 		/**
@@ -1025,35 +1346,21 @@ namespace chroma {
 		// positions of the colors on the interval [0, 1]. guaranteed to have the same length as _colors
 		// undefined when _colors is a function
 		private _pos: number[] | undefined
-		/** @internal */
-		public init(colorsOrFunction: Color[] | ((t: number) => Color)) {
-			this._colors = colorsOrFunction
-			if ("function" != typeof colorsOrFunction) {
-				this._pos = colorsOrFunction.map((_, i) => i / (colorsOrFunction.length - 1))
-			}
-			this._mode = "rgb"
-			this.domain(0, 1)
-			this._paddingLeft = 0
-			this._paddingRight = 0
-			this._correctLightness = false
-			this._cache = new Map()
-			this._gamma = 1
-		}
-		// public setColors(
-		// 	colorsOrBrewerClass: Chromable[] | keyof typeof brewer | ((f: number) => Color) = ["#fff", "#000"],
-		// ) {
-		// 	if ("function" == typeof colorsOrBrewerClass) {
-		// 		this._colors = colorsOrBrewerClass
-		// 	} else {
-		// 		const colors =
-		// 			"string" == typeof colorsOrBrewerClass ? chroma.brewer[colorsOrBrewerClass] : colorsOrBrewerClass
-		// 		this._colors = colors.map(c => chroma(c))
-		// 		this._pos = colors.map((_, i) => i / (colors.length - 1))
-		// 	}
-		// 	this.resetCache()
-		// 	return this._colors
-		// }
+
+		/**
+		 * Get the current scale classes.
+		 */
 		public classes(): number[]
+		/**
+		 * Make the scale return a number of distint color instead of a continuous gradient.
+		 * If you pass a number the scale will broken into equi-distant classes:
+		 *
+		 * @example chroma.scale('OrRd') // continous
+		 * @example chroma.scale('OrRd').classes(5) // equidistant classes
+		 * @example chroma.scale('OrRd').classes(8)
+		 *
+		 * @example chroma.scale('OrRd').classes([0, 6, 11, 17, 20]) // also sets domain
+		 */
 		public classes(classes: number | number[]): this
 		public classes(classes?: number | number[]) {
 			if (undefined === classes) {
@@ -1064,8 +1371,8 @@ namespace chroma {
 				this.domain(classes[0], classes[classes.length - 1])
 			} else {
 				if (classes % 1 != 0 || classes < 1) throw new Error("invalid classes param")
-				const d = chroma.analyze(this.domain())
-				this._classes = chroma.limits(this.domain(), "e", classes)
+				// const d = analyze(this.domain())
+				this._classes = limits(this.domain(), "e", classes)
 			}
 			return this
 		}
@@ -1074,17 +1381,17 @@ namespace chroma {
 		 * Get the domain.
 		 * @return If _colors is a function, [this._min, this._max]. If _colors is an array of colors, an array with the
 		 * same length as the number of colors.
-		 * @example chroma.scale("red", "white", "blue").domain(0, 20).domain() // [0, 10, 20]
+		 * @example chroma.scale("red", "white", "blue").domain(0, 20).domain() // == [0, 10, 20]
 		 */
 		public domain(): number[]
 		/**
-		 * Set the domain interval on which the scale is defined. Previous positions of colors will be scaled to match
-		 * the new interval. By default, the colors are spaced evenly on the interval.
+		 * Set the domain interval on which the scale is defined. Colors are distributed equidistantly along the
+		 * interval.
 		 * @param start
 		 * @param end
 		 * @return `this`
-		 * @example chroma.scale("red", "white", "blue").domain(0, 100)(50) // white
-		 * @example chroma.scale("red", "white", "blue").domain(0, 0.25, 1).domain(0, 100).domain() // [0, 25, 100]
+		 * @example chroma.scale("red", "white", "blue").domain(0, 100)(50) // == white
+		 * @example chroma.scale("red", "white", "blue").domain(0, 0.25, 1).domain(0, 100).domain() // == [0, 25, 100]
 		 */
 		public domain(start: number, end: number): this
 		/**
@@ -1093,11 +1400,10 @@ namespace chroma {
 		 * @param domain The positions of all scale colors. Values must be in ascending order and should not have
 		 * duplicates.
 		 * @return `this`
-		 * @example
-		 * const f = chroma.scale("red", "white", "blue").domain(0, 25, 100)
-		 * f(25) // white
-		 * f(100) // blue
-		 * f(50) // #aaaaff
+		 * @example scale = chroma.scale("red", "white", "blue").domain(0, 25, 100)
+		 * @example scale(25) // == white
+		 * @example scale(100) // == blue
+		 * @example scale(50) // == #aaaaff
 		 */
 		public domain(...domain: number[]): this
 		public domain(...domain: number[]): number[] | this {
@@ -1110,11 +1416,11 @@ namespace chroma {
 			this._max = domain[domain.length - 1]
 			if (2 == domain.length) {
 				if ("function" !== typeof this._colors) {
+					// equidistant positions
 					this._pos = this._colors.map((_, c) => c / (this._colors.length - 1))
 				}
-			} else if (domain.length == this._colors.length && "function" !== typeof this._colors) {
-				// equidistant positions
-				this._pos = domain.map(d => (d - this._min) / (this._max - this._min))
+			} else if ("function" !== typeof this._colors && domain.length == this._colors.length) {
+				this._pos = domain.map(d => lerpInv(this._min, this._max, d))
 			} else {
 				throw new Error("invalid domain " + domain)
 			}
@@ -1139,24 +1445,50 @@ namespace chroma {
 				return this._mode
 			}
 			this._mode = mode
-			this.resetCache()
+			this._resetCache()
 			return this
 		}
 
 		/**
 		 * Set the output format return by `this(x)` and `this.colors(n)`.
-		 * @param _o The color format to use. Pass `undefined` to return [Color] objects.
+		 * @param outputFormat The color format to use. Pass `undefined` to return [Color] objects.
 		 * @return `this`
-		 * @example chroma.scale("red", "white").out("hex")(0) // "#ff0000"
-		 * @example chroma.scale("red", "white").out("num").colors(2) // [0xff0000, 0xffffff]
+		 * @example chroma.scale("red", "white").out("hex")(0) // == "#ff0000"
+		 * @example chroma.scale("red", "white").out("num").colors(2) // == [0xff0000, 0xffffff]
 		 */
-		public out(_o: ColorFormat | undefined) {
-			this._out = _o
-			return this
+		public out<M extends ColorFormat | undefined>(
+			outputFormat: M,
+		): M extends ColorFormat ? ReturnType<Color[M]> : Color {
+			this._out = outputFormat
+			return this as any
 		}
-		public correctLightness(v = true) {
-			if (this._correctLightness != v) this.resetCache()
-			this._correctLightness = v
+
+		/**
+		 * This makes sure the lightness range is spread evenly across a color scale. Especially useful when working
+		 * with [multi-hue color scales](https://www.vis4.net/blog/2013/09/mastering-multi-hued-color-scales/), where
+		 * simple gamma correction can't help you very much.
+		 *
+		 * @example chroma.scale('black','red','yellow','white')
+		 * @example chroma.scale('black','red','yellow','white').correctLightness()
+		 */
+		public correctLightness(enableCorrectLightness = true) {
+			if (this._correctLightness != enableCorrectLightness) {
+				this._resetCache()
+				const colors = this._colors
+				if (enableCorrectLightness && "function" !== typeof colors) {
+					// make sure that the colors have ascending or descending lightnesses
+					let sign = 0
+					for (let i = 1; i < colors.length; i++) {
+						const sign2 = colors[i].lab()[0] - colors[i - 1].lab()[0]
+						if (0 == sign) {
+							sign = sign2
+						} else if (sign * sign2 < 0) {
+							throw new Error("scale color lightnesses must be monotonic")
+						}
+					}
+				}
+			}
+			this._correctLightness = enableCorrectLightness
 			return this
 		}
 
@@ -1168,10 +1500,12 @@ namespace chroma {
 		/**
 		 * Set the padding. Positive values will "cut off" the ends of gradient, while negative values will add a
 		 * section of constant color at the ends.
-		 * @example chroma.scale("red", "white").padding(0.1)(0) // chroma('#ff1a1a'), instead of red
-		 * @example chroma.scale("red", "white").padding(-0.1)(0) // chroma('red')
+		 * @example chroma.scale("red", "white").padding(0.2)
+		 * @example chroma.scale("red", "white").padding(0.1)(0) // == chroma('#ff1a1a'), instead of red
+		 * @example chroma.scale("red", "white").padding(-0.1)(0) // == chroma('red')
 		 * @param paddingLeft padding on left side.(lower-valued end of the interval).
-		 * @param paddingRight padding on right (higher-valued end of the interval) defaults to paddingLeft.
+		 * @param paddingRight padding on right (higher-valued end of the interval).
+		 * default=paddingLeft
 		 */
 		public padding(paddingLeft: number, paddingRight?: number): this
 		public padding(paddingLeft?: number, paddingRight: number | undefined = paddingLeft) {
@@ -1186,20 +1520,22 @@ namespace chroma {
 		/**
 		 * Get a number of equidistant colors.
 		 * @param numColors The number of colors to return.
-		 * @param format Output format. Defaults to `"hex"`. Pass `false` to get [Color] objects.
+		 * @param format Output format. Defaults to `"hex"`. Pass `false` to get {@link Color} objects.
 		 * @returns If `numColors` is `undefined`, the colors which define this [Scale]. If `numColors` is 1,
 		 * `[this((min + max) / 2)]`. Otherwise, an array where the first element is `this(min)`, the last one is
 		 * `this(max)` and the rest are equidistant samples between min and max.
+		 * @example chroma.scale('OrRd').colors(5)
+		 * @example chroma.scale(['white', 'black']).colors(12)
 		 */
-		public colors(numColors?: number, format: ColorFormat | undefined | false = "hex") {
+		public colors(numColors?: number, format: ColorFormat | false = "hex"): T[] {
 			let result: Color[]
 			if (undefined === numColors) {
 				result = (this._colors as Color[]).slice()
 			} else if (numColors == 1) {
-				result = [this((this._min + this._max) / 2)]
+				result = [this._color((this._min + this._max) / 2)]
 			} else if (numColors > 1) {
 				result = Array.from({ length: numColors }, (_, i) =>
-					this(lerp(this._min, this._max, i / (numColors - 1))),
+					this._color(lerp(this._min, this._max, i / (numColors - 1))),
 				)
 			} else {
 				// returns all colors based on the defined classes
@@ -1212,9 +1548,10 @@ namespace chroma {
 				} else {
 					samples = this.domain() // TODO?!
 				}
-				result = samples.map(this)
+				result = samples.map(s => this._color(s))
 			}
-			return format ? result.map(c => c[format]()) : result
+
+			return (format ? result.map(c => c[format]()) : result) as any
 		}
 
 		/**
@@ -1224,7 +1561,6 @@ namespace chroma {
 		/**
 		 * Enable or disable the cache.
 		 * @param enableCache Whether the cache should be enabled.
-		 * @return `this`
 		 */
 		public cache(enableCache: boolean): this
 		public cache(enableCache?: boolean) {
@@ -1240,11 +1576,11 @@ namespace chroma {
 		 */
 		public gamma(): number
 		/**
-		 * Set the gamme value.Gamma-correction can be used to "shift" a scale's center more the the beginning (gamma <
+		 * Set the gamma value. Gamma-correction can be used to "shift" a scale's center more the the beginning (gamma <
 		 * 1) or end (gamma > 1), typically used to "even" the lightness gradient. Default is 1.
-		 * @example chroma.scale('YlGn').gamma(0.5);
-chroma.scale('YlGn').gamma(1);
-chroma.scale('YlGn').gamma(2);
+		 * @example chroma.scale('YlGn').gamma(0.5)
+		 * @example chroma.scale('YlGn').gamma(1)
+		 * @example chroma.scale('YlGn').gamma(2)
 		 */
 		public gamma(gamma: number): this
 		public gamma(gamma?: number) {
@@ -1255,21 +1591,36 @@ chroma.scale('YlGn').gamma(2);
 			return this
 		}
 
-		public at(t: number) {
-			const c = this.color(t)
+		private _at(t: number) {
+			const c = this._color(t)
 			return this._out ? c[this._out]() : c
 		}
-		private getClass(value: number) {
+
+		private _init(colorsOrFunction: Color[] | ((t: number) => Color)) {
+			this._colors = colorsOrFunction
+			if ("function" != typeof colorsOrFunction) {
+				this._pos = colorsOrFunction.map((_, i) => i / (colorsOrFunction.length - 1))
+			}
+			this._mode = "rgb"
+			this.domain(0, 1)
+			this._paddingLeft = 0
+			this._paddingRight = 0
+			this._correctLightness = false
+			this._cache = new Map()
+			this._gamma = 1
+		}
+
+		private _getClass(value: number) {
 			return this._classes!.findIndex(cls => value <= cls) - 1
 		}
 
-		private color(val: number, bypassMap = false) {
+		private _color(val: number, bypassMap = false) {
 			let t
 			if (!bypassMap) {
 				const min = this._min,
 					max = this._max
 				if (this._classes && this._classes.length > 2) {
-					const c = this.getClass(val)
+					const c = this._getClass(val)
 					t = c / (this._classes.length - 2)
 				} else if (max !== min) {
 					t = (val - min) / (max - min)
@@ -1277,7 +1628,7 @@ chroma.scale('YlGn').gamma(2);
 					t = 1
 				}
 				if (this._correctLightness) {
-					t = this.tCorrectedLightness(t)
+					t = this._tCorrectedLightness(t)
 				}
 			} else {
 				t = val
@@ -1305,7 +1656,7 @@ chroma.scale('YlGn').gamma(2);
 						}
 						if (t > p && t < this._pos![i + 1]) {
 							t = (t - p) / (this._pos![i + 1] - p)
-							col = chroma.interpolate(this._colors[i], this._colors[i + 1], t, this._mode)
+							col = mix(this._colors[i], this._colors[i + 1], t, this._mode)
 							break
 						}
 					}
@@ -1313,50 +1664,45 @@ chroma.scale('YlGn').gamma(2);
 					col = this._colors(t)
 				}
 				if (this._cache) {
+					// tslint:disable-next-line
 					this._cache.set(tHash, col!)
 				}
+				// tslint:disable-next-line
 				return col!
 			}
 		}
-		private tCorrectedLightness(t0_1: number) {
-			const L0 = this.color(0, true).lab()[0]
-			const L1 = this.color(1, true).lab()[0]
+		private _tCorrectedLightness(t0_1: number) {
+			const L0 = this._color(0, true).lab()[0]
+			const L1 = this._color(1, true).lab()[0]
 			const L_ideal = lerp(L0, L1, t0_1)
-			return newtonIterate1d(t => this.color(t, true).lab()[0] - L_ideal, t0_1, 8)
+			return bisect(t => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8)
 		}
-		private resetCache() {
-			this._cache!.clear()
+		private _resetCache() {
+			if (this._cache) this._cache.clear()
 		}
-	}
-
-	export function scale(...colors: Chromable[]): Scale
-	export function scale(colors: Chromable[] | keyof typeof brewer | ((f: number) => Color)): Scale
-	export function scale(...args: any[]) {
-		const f: Scale = (t => f.at(t)) as Scale
-		;(Object.getOwnPropertyNames(Scale.prototype) as (keyof typeof Scale)[]).forEach(
-			key => (f[key] = Scale.prototype[key]),
-		)
-		if (Array.isArray(args[0])) args = args[0]
-		if (args.length == 1 && "string" == typeof args[0]) args = brewer[args[0] as keyof typeof brewer]
-
-		f.init("function" == typeof args[0] ? args[0] : args.map(a => chroma(a)))
-		//f.setColors(args.length > 1 ? args : args[0])
-		return f
 	}
 
 	export namespace scales {
+		/**
+		 * @example chroma.scales.cool()
+		 */
 		export function cool() {
-			return chroma.scale([chroma.hsl(180, 1, 0.9), chroma.hsl(250, 0.7, 0.4)])
+			return scale([hsl(180, 1, 0.9), hsl(250, 0.7, 0.4)])
 		}
 
+		/**
+		 * @example chroma.scales.hot()
+		 */
 		export function hot() {
-			return chroma.scale(["#000", "#f00", "#ff0", "#fff"]).mode("rgb")
+			return scale(["#000", "#f00", "#ff0", "#fff"]).mode("rgb")
 		}
 	}
 
 	/**
-	 * Computes the WCAG contrast ratio between two colors. A minimum contrast of 4.5:1 is recommended to ensure that
-	 * text is still readable against a background color.
+	 * Computes the WCAG contrast ratio between two colors. A minimum contrast of 4.5:1
+	 * [is recommended](http://www.w3.org/TR/WCAG20-TECHS/G18.html) to ensure that text is still readable against a
+	 * background color.
+	 *
 	 * @param a
 	 * @param b
 	 */
@@ -1371,10 +1717,14 @@ chroma.scale('YlGn').gamma(2);
 	}
 
 	/**
-	 * Compute the euclidean distance between two colors.
+	 * Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two colors.
 	 * @param a First color.
 	 * @param b Second color.
 	 * @param mode The color space in which to compute the distance. Defaults to "lab".
+	 * @example chroma.distance('#fff', '#ff0', 'rgb')
+	 * @example chroma.distance('#fff', '#f0f', 'rgb')
+	 * @example chroma.distance('#fff', '#ff0')
+	 * @example chroma.distance('#fff', '#f0f')
 	 */
 	export function distance(a: Chromable, b: Chromable, mode: ColorMode = "lab") {
 		const l1 = chroma(a)[mode]()
@@ -1382,23 +1732,31 @@ chroma.scale('YlGn').gamma(2);
 		const channelDifferences = l1.map(
 			(channelValue: number, channelIndex: number) => channelValue - l2[channelIndex],
 		)
-		return Math.hypot(...channelDifferences)
+		return hypot(...channelDifferences)
 	}
 
-	export function deltaE(a: Chromable, b: Chromable, L = 1, C = 1) {
-		const [L1, a1, b1] = chroma(a).lab()
-		const [L2, a2, b2] = chroma(b).lab()
+	/**
+	 * Computes color difference as developed by the Colour Measurement Committee of the Society of Dyers and Colourists
+	 * (CMC) in 1984. The implementation is adapted from Bruce Lindbloom. The parameters L and C are weighting factors
+	 * for lightness and chromaticity.
+	 * @param reference
+	 * @param sample
+	 * @param L
+	 * @param C
+	 * @example [r = '#ededee', s = '#edeeed', chroma.deltaE(r, s)]
+	 * @example [r = '#ececee', s = '#eceeec', chroma.deltaE(r, s)]
+	 * @example [r = '#e9e9ee', s = '#e9eee9', chroma.deltaE(r, s)]
+	 * @example [r = '#e4e4ee', s = '#e4eee4', chroma.deltaE(r, s)]
+	 * @example [r = '#e0e0ee', s = '#e0eee0', chroma.deltaE(r, s)]
+	 */
+	export function deltaE(reference: Chromable, sample: Chromable, L = 1, C = 1) {
+		const [L1, a1, b1] = chroma(reference).lab()
+		const [L2, a2, b2] = chroma(sample).lab()
 		const c1 = sqrt(a1 * a1 + b1 * b1)
 		const c2 = sqrt(a2 * a2 + b2 * b2)
 		const sl = L1 < 16.0 ? 0.511 : (0.040975 * L1) / (1.0 + 0.01765 * L1)
 		const sc = (0.0638 * c1) / (1.0 + 0.0131 * c1) + 0.638
-		let h1 = c1 < 0.000001 ? 0.0 : (atan2(b1, a1) * 180.0) / PI
-		while (h1 < 0) {
-			h1 += 360
-		}
-		while (h1 >= 360) {
-			h1 -= 360
-		}
+		const h1 = norm360(c1 < 0.000001 ? 0.0 : (atan2(b1, a1) * 180.0) / PI)
 		const t =
 			h1 >= 164.0 && h1 <= 345.0
 				? 0.56 + abs(0.2 * cos((PI * (h1 + 168.0)) / 180.0))
@@ -1445,14 +1803,14 @@ chroma.scale('YlGn').gamma(2);
 		data.forEach(val => add(val))
 		r.domain = [r.min, r.max]
 		r.limits = function(mode, num) {
-			return chroma.limits(this, mode, num)
+			return limits(this, mode, num)
 		}
 		return r
 	}
 
 	type LimitsMode = "e" | "q" | "l" | "k"
 	export function limits(data: number[] | DataInfo, mode: LimitsMode = "e", num = 7): number[] {
-		const info = Array.isArray(data) ? chroma.analyze(data) : data
+		const info = Array.isArray(data) ? analyze(data) : data
 		const { min, max, values } = info
 		values.sort((a, b) => a - b)
 		if (num == 1) {
@@ -1539,7 +1897,7 @@ chroma.scale('YlGn').gamma(2);
 }
 
 const interpolators: {
-	[mode: string]: (color1: Color, color2: Color, f: number, mode: InterpolationMode) => Color
+	[K in InterpolationMode]?: (color1: chroma.Color, color2: chroma.Color, f: number, mode: K) => chroma.Color
 } = {}
 
 // const _guess_formats: { p: number; test: (args: any[]) => ColorFormat | undefined }[] = []
@@ -1547,7 +1905,7 @@ const _input: {
 	[mode: string]: (...args: any[]) => RGB | RGBA
 } = {}
 
-function linear_interpolator(col1: Color, col2: Color, f: number, m: ColorMode) {
+function linear_interpolator(col1: chroma.Color, col2: chroma.Color, f: number, m: ColorMode) {
 	const xyz1 = col1[m]()
 	const xyz2 = col2[m]()
 	return guess(
@@ -1560,9 +1918,7 @@ function linear_interpolator(col1: Color, col2: Color, f: number, m: ColorMode) 
 		m,
 	)
 }
-interpolators.xyz = linear_interpolator as any
-interpolators.rgb = linear_interpolator as any
-interpolators.lab = linear_interpolator as any
+interpolators.xyz = interpolators.rgb = interpolators.lab = linear_interpolator
 
 interpolators.num = function(col1, col2, f) {
 	const n1 = col1.num()
@@ -1573,15 +1929,15 @@ interpolators.num = function(col1, col2, f) {
 interpolators.lrgb = function(col1, col2, f) {
 	const [r1, g1, b1, a1] = col1.rgba(false, false)
 	const [r2, g2, b2, a2] = col2.rgba(false, false)
-	return new Color([
-		Math.sqrt(r1 ** 2 * (1 - f) + r2 ** 2 * f),
-		Math.sqrt(g1 ** 2 * (1 - f) + g2 ** 2 * f),
-		Math.sqrt(b1 ** 2 * (1 - f) + b2 ** 2 * f),
+	return new chroma.Color(
+		sqrt(r1 ** 2 * (1 - f) + r2 ** 2 * f),
+		sqrt(g1 ** 2 * (1 - f) + g2 ** 2 * f),
+		sqrt(b1 ** 2 * (1 - f) + b2 ** 2 * f),
 		lerp(a1, a2, f),
-	])
+	)
 }
 
-function _bezier(chromables: Chromable[]): (t: number) => Color {
+function _bezier(chromables: chroma.Chromable[]): (t: number) => chroma.Color {
 	const colors = chromables.map(c => chroma(c))
 	const [lab0, lab1, lab2, lab3] = colors.map(c => c.lab())
 	if (2 == chromables.length) {
@@ -1606,7 +1962,7 @@ function _bezier(chromables: Chromable[]): (t: number) => Color {
 	} else throw new Error()
 }
 
-function guess(args: any[], mode?: ColorFormat): Color {
+function guess(args: any[], mode?: ColorFormat): chroma.Color {
 	if (Array.isArray(args[0])) args = args[0]
 	if (!mode) {
 		if (args.length == 1 && args[0] in chroma.w3cx11) {
@@ -1621,14 +1977,11 @@ function guess(args: any[], mode?: ColorFormat): Color {
 			mode = "num"
 		} else throw new Error("could not guess mode. args " + JSON.stringify(args))
 	}
-	const rgb = _input[mode](...args)
-	if (rgb.some(x => "number" != typeof x)) {
-		throw new Error("invalid rgb")
-	}
-	return new Color(rgb)
+	const [r, g, b, a] = _input[mode](...args)
+	return new chroma.Color(r, g, b, a)
 }
 
-function _average_lrgb(colors: Color[]) {
+function _average_lrgb(colors: chroma.Color[]) {
 	let rSquareSum = 0,
 		gSquareSum = 0,
 		bSquareSum = 0,
@@ -1640,12 +1993,12 @@ function _average_lrgb(colors: Color[]) {
 		bSquareSum += b ** 2
 		alphaSum += alpha
 	}
-	return new Color([
-		Math.sqrt(rSquareSum) / colors.length,
-		Math.sqrt(gSquareSum) / colors.length,
-		Math.sqrt(bSquareSum) / colors.length,
+	return new chroma.Color(
+		sqrt(rSquareSum) / colors.length,
+		sqrt(gSquareSum) / colors.length,
+		sqrt(bSquareSum) / colors.length,
 		alphaSum / colors.length,
-	])
+	)
 }
 
 function hex2rgb(hex: string): RGBA | RGB {
@@ -1663,18 +2016,56 @@ function hex2rgb(hex: string): RGBA | RGB {
 	throw new Error("invalid hex color: " + hex)
 }
 // color mode, i.e. representation as array of number
-export type ColorMode = "rgb" | "cmyk" | "lab" | "hsv" | "hsi" | "hcg" | "hsl" | "gl" | "hcl" | "lch" | "xyz"
-export type InterpolationMode = ColorMode | "lrgb"
+export type ColorMode = "rgb" | "cmyk" | "lab" | "hsv" | "hsi" | "hcg" | "hsl" | "gl" | "lch" | "xyz"
+export type InterpolationMode = "rgb" | "lab" | "hsv" | "hsi" | "hcg" | "hsl" | "lch" | "xyz" | "lrgb" | "num"
 export type ColorFormat = ColorMode | "hex" | "num" | "name" | "kelvin" | "css"
-type RGBA = [number, number, number, number]
+/**
+ * CMYK color space
+ * @see https://en.wikipedia.org/wiki/cmyk_color_model
+ * [cyan, magenta, yellow, alpha1]
+ */
 type CMYK = [number, number, number, number]
+/**
+ * WebGL colors. Like RGB, but floats in [0; 1] instead of 0-255.
+ * [red255, green255, blue255, alpha1]
+ */
 type GL = [number, number, number, number]
+/**
+ * Red, green, blue ranging from 0-255.
+ * Can be floats and outside the above range internally.
+ */
 type RGB = [number, number, number]
+/**
+ * RGB plus alpha ranging from 0-1
+ * [red255, green255, blue255, alpha1]
+ */
+type RGBA = [number, number, number, number]
+/**
+ * CIELAB color space
+ * [lightness, A*, B*]
+ * @see https://en.wikipedia.org/wiki/CIELAB_color_space
+ */
 type LAB = [number, number, number]
+/**
+ * Cylindrical representation of CIELAB
+ * @see https://en.wikipedia.org/wiki/CIELAB_color_space#Cylindrical_representation:_CIELCh_or_CIEHLC
+ *
+ */
 type LCH = [number, number, number]
-type HCL = [number, number, number]
+/**
+ * @see https://en.wikipedia.org/wiki/HSL_and_HSV
+ * [hueDegrees, saturation1, lightness1]
+ */
 type HSL = [number, number, number]
+/**
+ * @see https://en.wikipedia.org/wiki/HSL_and_HSV
+ * [hueDegrees, saturation1, value1]
+ */
 type HSV = [number, number, number]
+/**
+ * @see https://en.wikipedia.org/w/index.php?title=HSI_color_space&redirect=no
+ * [hueDegrees, saturation1, intensity1]
+ */
 type HSI = [number, number, number]
 type XYZ = [number, number, number]
 /**
@@ -1686,14 +2077,32 @@ type XYZ = [number, number, number]
  * `g` is the gray value in [0; 1]
  */
 type HCG = [number, number, number]
-function rgb2hex(channels: RGBA, mode: "rgb" | "rgba" | "argb" = "rgb") {
-	let [r, g, b, a] = channels
-	r = clamp(Math.round(r), 0, 255)
-	g = clamp(Math.round(g), 0, 255)
-	b = clamp(Math.round(b), 0, 255)
-	const rgb = (r << 16) | (g << 8) | b
+
+// interface ColorModes {
+// 	cmyk: CMYK
+// 	gl: GL
+// 	rgb: RGB
+// 	rgba: RGBA
+// 	lab: LAB
+// 	hsl: HSL
+// 	hsv: HSV
+// 	hsi: HSI
+// 	xyz: XYZ
+// 	hcg: HCG
+// 	lch: LCH
+// 	hex: string
+// 	num: number
+// 	name: string
+// 	kelvin: number
+// 	css: string
+// }
+function rgb2hex(r255: number, g255: number, b255: number, a1: number, mode: "rgb" | "rgba" | "argb" = "rgb") {
+	r255 = clamp(round(r255), 0, 255)
+	g255 = clamp(round(g255), 0, 255)
+	b255 = clamp(round(b255), 0, 255)
+	const rgb = (r255 << 16) | (g255 << 8) | b255
 	const rgbString = rgb.toString(16).padStart(6, "0")
-	const alphaString = round(clamp(a) * 255)
+	const alphaString = round(clamp(a1) * 255)
 		.toString(16)
 		.padStart(2, "0")
 	return "#" + ("argb" == mode ? alphaString + rgbString : "rgba" == mode ? rgbString + alphaString : rgbString)
@@ -1702,78 +2111,9 @@ function rgb2hex(channels: RGBA, mode: "rgb" | "rgba" | "argb" = "rgb") {
 _input.lrgb = _input.rgb
 
 _input.hex = hex2rgb
-function rgb2hsl(r: number, g: number, b: number): HSL {
-	r /= 255
-	g /= 255
-	b /= 255
-	const min = Math.min(r, g, b)
-	const max = Math.max(r, g, b)
-	const l = (max + min) / 2
-	let s: number,
-		hueTurnX6: number = 0
-	if (max == min) {
-		s = 0
-		hueTurnX6 = 0
-	} else {
-		s = l < 0.5 ? (max - min) / (max + min) : (max - min) / (2 - max - min)
-		if (r == max) {
-			hueTurnX6 = (g - b) / (max - min) + (g < b ? 6 : 0)
-		} else if (g == max) {
-			hueTurnX6 = 2 + (b - r) / (max - min)
-		} else if (b == max) {
-			hueTurnX6 = 4 + (r - g) / (max - min)
-		}
-	}
-	return [hueTurnX6 * 60, s, l]
-}
 _input.hsl = hsl2rgb
 function norm360(degrees: number) {
 	return ((degrees % 360) + 360) % 360
-}
-function hsv2rgb(h: number, s: number, v: number, a: number = 1): RGBA {
-	v *= 255
-	if (s == 0) {
-		return [v, v, v, a]
-	} else {
-		const hueTurnX6 = norm360(h / 60)
-		const i = floor(hueTurnX6)
-		const f = hueTurnX6 - i
-		const p = v * (1 - s)
-		const q = v * (1 - s * f)
-		const t = v * (1 - s * (1 - f))
-		if (h < 60) {
-			return [v, t, p, a]
-		} else if (h < 120) {
-			return [q, v, p, a]
-		} else if (h < 180) {
-			return [p, v, t, a]
-		} else if (h < 240) {
-			return [p, q, v, a]
-		} else if (h < 300) {
-			return [t, p, v, a]
-		} else {
-			return [v, p, q, a]
-		}
-	}
-}
-
-function rgb2hsv(r: number, g: number, b: number): HSV {
-	const min = Math.min(r, g, b)
-	const max = Math.max(r, g, b)
-	const delta = max - min
-	const v = max / 255.0
-	let hueTurnX6
-	const s = max == 0 ? 0 : delta / max
-	if (0 == delta) {
-		hueTurnX6 = 0
-	} else if (r == max) {
-		hueTurnX6 = (g - b) / delta + (g < b ? 6 : 0)
-	} else if (g == max) {
-		hueTurnX6 = 2 + (b - r) / delta
-	} else {
-		hueTurnX6 = 4 + (r - g) / delta
-	}
-	return [hueTurnX6 * 60, s, v]
 }
 
 _input.hsv = hsv2rgb
@@ -1788,62 +2128,18 @@ function num2rgb(num: number): RGBA {
 	return [r, g, b, 1]
 }
 
-function rgb2num(r: number, g: number, b: number) {
-	return (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)
+function rgb2num(r255: number, g255: number, b255: number, a1: number = 1, mode: "rgb" | "rgba" | "argb" = "rgb") {
+	const rgbNum = (round(r255) << 16) | (round(g255) << 8) | round(b255)
+	if ("rgb" === mode) {
+		return rgbNum
+	} else if ("rgba" === mode) {
+		return (rgbNum << 8) | (round(a1 * 255) << 24)
+	} else {
+		return (round(a1 * 255) << 24) | rgbNum
+	}
 }
 
 _input.num = num2rgb
-
-function hcg2rgb(h: number, c: number, g: number, a = 1): RGBA {
-	if (c == 0) {
-		return [g * 255, g * 255, g * 255, a]
-	} else {
-		const hueTurnX6 = norm360(h / 60)
-		const i = floor(hueTurnX6)
-		const f = hueTurnX6 - i
-		const p = g * (1 - c)
-		const q = 255 * (p + c * (1 - f))
-		const t = 255 * (p + c * f)
-		const v = 255 * (p + c)
-		if (0 == i) {
-			return [v, t, p, a]
-		} else if (1 == i) {
-			return [q, v, p, a]
-		} else if (2 == i) {
-			return [p, v, t, a]
-		} else if (3 == i) {
-			return [p, q, v, a]
-		} else if (4 == i) {
-			return [t, p, v, a]
-		} else {
-			return [v, p, q, a]
-		}
-	}
-}
-
-function rgb2hcg(r: number, g: number, b: number): HCG {
-	r /= 255
-	g /= 255
-	b /= 255
-	const min = Math.min(r, g, b)
-	const max = Math.max(r, g, b)
-	const c = max - min
-	const _g = c < 1 ? min / (1 - c) : 0
-	let hueTurnX6 // angle as value between 0 and 6
-	if (0 === c) {
-		hueTurnX6 = 0
-	} else if (r == max) {
-		// second term to make sure the value is > 0
-		hueTurnX6 = (g - b) / c + (b > g ? 6 : 0)
-	} else if (g == max) {
-		hueTurnX6 = 2 + (b - r) / c
-	} else {
-		hueTurnX6 = 4 + (r - g) / c
-	}
-	return [hueTurnX6 * 60, c, _g]
-}
-
-_input.hcg = hcg2rgb
 
 const WS = "\\s*"
 const FLOAT = "([+-]?(?:\\d*\\.?)?\\d+(?:[eE][+-]?\\d+)?)"
@@ -1949,46 +2245,44 @@ function lch2lab(l: number, c: number, hueDegrees: number): LAB {
 	return [l, cos(hueDegrees * DEG2RAD) * c, sin(hueDegrees * DEG2RAD) * c]
 }
 
-function lch2rgb(l: number, c: number, h: number, alpha = 1): RGBA {
-	const [, a, b] = lch2lab(l, c, h)
-	return cielab2rgb(l, a, b, alpha)
+function lch2rgb(l: number, c: number, hDegrees: number, alpha1 = 1): RGBA {
+	const [, a, b] = lch2lab(l, c, hDegrees)
+	return cielab2rgb(l, a, b, alpha1)
 }
 
 function lab2lch(l: number, a: number, b: number): LCH {
-	const c = Math.hypot(a, b)
-	const h = (Math.atan2(b, a) * RAD2DEG + 360) % 360
+	const c = hypot(a, b)
+	const h = (atan2(b, a) * RAD2DEG + 360) % 360
 	return [l, c, h]
 }
 
-function rgb2lch(r: number, g: number, b: number) {
-	const [l, a, b2] = rgb2lab(r, g, b)
+function rgb2lch(r255: number, g255: number, b255: number) {
+	const [l, a, b2] = rgb2lab(r255, g255, b255)
 	return lab2lch(l, a, b2)
 }
 
 _input.lch = lch2rgb
 
-_input.hcl = (h, c, l) => lch2rgb(l, c, h)
-
-function rgb2cmyk(r: number, g: number, b: number): CMYK {
-	r /= 255
-	g /= 255
-	b /= 255
-	const k = 1 - Math.max(r, g, b)
+function rgb2cmyk(r255: number, g255: number, b255: number): CMYK {
+	r255 /= 255
+	g255 /= 255
+	b255 /= 255
+	const k = 1 - max(r255, g255, b255)
 	if (1 == k) return [0, 0, 0, 1]
-	const c = (1 - r - k) / (1 - k)
-	const m = (1 - g - k) / (1 - k)
-	const y = (1 - b - k) / (1 - k)
+	const c = (1 - r255 - k) / (1 - k)
+	const m = (1 - g255 - k) / (1 - k)
+	const y = (1 - b255 - k) / (1 - k)
 	return [c, m, y, k]
 }
 
-function cmyk2rgb(c: number, m: number, y: number, k: number, alpha = 1): RGBA {
-	if (k == 1) {
-		return [0, 0, 0, alpha]
+function cmyk2rgb(c1: number, m1: number, y1: number, k1: number, alpha1 = 1): RGBA {
+	if (k1 == 1) {
+		return [0, 0, 0, alpha1]
 	}
-	const r = c >= 1 ? 0 : 255 * (1 - c) * (1 - k)
-	const g = m >= 1 ? 0 : 255 * (1 - m) * (1 - k)
-	const b = y >= 1 ? 0 : 255 * (1 - y) * (1 - k)
-	return [r, g, b, alpha]
+	const r255 = 255 * (1 - c1) * (1 - k1)
+	const g255 = 255 * (1 - m1) * (1 - k1)
+	const b255 = 255 * (1 - y1) * (1 - k1)
+	return [r255, g255, b255, alpha1]
 }
 
 _input.cmyk = cmyk2rgb
@@ -2003,33 +2297,33 @@ _input.gl = function(r: number, g: number, b: number, a: number = 1): RGBA {
 //	return Y
 //}
 
-function rgbChannel2RgbLinear(xIn0_255: number) {
-	const xIn0_1 = xIn0_255 / 255
+function rgbChannel2RgbLinear(x255: number) {
+	const x1 = x255 / 255
 	// http://entropymine.com/imageworsener/srgbformula/
-	if (xIn0_1 <= 0.04045) {
-		return xIn0_1 / 12.92
+	if (x1 <= 0.04045) {
+		return x1 / 12.92
 	} else {
-		return ((xIn0_1 + 0.055) / 1.055) ** 2.4
+		return ((x1 + 0.055) / 1.055) ** 2.4
 	}
 }
-function rgbLinearChannel2Rgb(xLinearIn0_1: number) {
-	if (xLinearIn0_1 <= 0.0031308) {
-		return 255 * (12.92 * xLinearIn0_1)
+function rgbLinearChannel2Rgb(xLinear1: number) {
+	if (xLinear1 <= 0.0031308) {
+		return 255 * (12.92 * xLinear1)
 	} else {
-		return 255 * ((1 + 0.055) * xLinearIn0_1 ** (1 / 2.4) - 0.055)
+		return 255 * ((1 + 0.055) * xLinear1 ** (1 / 2.4) - 0.055)
 	}
 }
 
 function kelvin2rgb(kelvin: number): RGB {
-	const temp = kelvin / 100
+	const t = kelvin / 100
 	let r, g, b
-	if (temp < 66) {
+	if (t < 66) {
 		r = 255
-		g = -155.25485562709179 - 0.44596950469579133 * (temp - 2) + 104.49216199393888 * log(temp - 2)
-		b = temp < 20 ? 0 : -254.76935184120902 + 0.8274096064007395 * (temp - 10) + 115.67994401066147 * log(temp - 10)
+		g = -155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)
+		b = t < 20 ? 0 : -254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)
 	} else {
-		r = 351.97690566805693 + 0.114206453784165 * (temp - 55) - 40.25366309332127 * log(temp - 55)
-		g = 325.4494125711974 + 0.07943456536662342 * (temp - 50) - 28.0852963507957 * log(temp - 50)
+		r = 351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)
+		g = 325.4494125711974 + 0.07943456536662342 * (t - 50) - 28.0852963507957 * log(t - 50)
 		b = 255
 	}
 	return [r, g, b]
@@ -2037,7 +2331,42 @@ function kelvin2rgb(kelvin: number): RGB {
 
 _input.rgb = (...args: number[]) => args as RGB
 
-function rgb2kelvin(r: number, g: number, b: number) {
+function rgb2kelvin(r255: number, g255: number, b255: number) {
+	console.log(b255 - r255)
+	if (g255 + b255 < 158.61) {
+		console.log("0 < t < 20")
+		// calc from green
+		return round(
+			newtonIterate1d(
+				t => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)),
+				15,
+				4,
+			) * 100,
+		)
+		return (Math.E ** ((g255 + 155.25485562709179 + 0.44596950469579133 * (15 - 2)) / 104.49216199393888) + 2) * 100
+	} else if (b255 - r255 < 0) {
+		console.log("20 < t < 66")
+		return round(
+			newtonIterate1d(
+				t => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)),
+				43,
+				4,
+			) * 100,
+		)
+		return (
+			(Math.E ** ((b255 + 254.76935184120902 - 0.8274096064007395 * (43 - 10)) / 115.67994401066147) + 10) * 100
+		)
+	} else {
+		console.log("0 < t < 400, start= " + (-1.4 * (r255 + g255) + 755))
+		return round(
+			newtonIterate1d(
+				t => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)),
+				-1.4 * (r255 + g255) + 755,
+				8,
+			) * 100,
+		)
+		return ((r255 / 329.698727446) ** (1 / -0.1332047592) + 60) * 100
+	}
 	return newtonIterate1d(
 		k => {
 			const eps = 1e-9
@@ -2046,13 +2375,13 @@ function rgb2kelvin(r: number, g: number, b: number) {
 			const dkr = (kr2 - kr) / eps,
 				dkg = (kg2 - kg) / eps,
 				dkb = (kb2 - kb) / eps
-			return dkr * (kr - r) + dkg * (kg - g) + dkb * (kb - b)
+			return dkr * (kr - r255) + dkg * (kg - g255) + dkb * (kb - b255)
 
-			return kb / kr - b / r
+			return kb / kr - b255 / r255
 		},
 		//1000,
 		//40000,
-		Math.E ** ((b / r + 2.5) / 0.4),
+		Math.E ** ((b255 / r255 + 2.5) / 0.4),
 		20,
 		//1e-6,
 	)
@@ -2064,7 +2393,7 @@ function rgb2kelvin(r: number, g: number, b: number) {
 	while (maxTemp - minTemp > eps) {
 		temp = (maxTemp + minTemp) * 0.5
 		rgb = kelvin2rgb(temp)
-		if (rgb[2] / rgb[0] >= b / r) {
+		if (rgb[2] / rgb[0] >= b255 / r255) {
 			maxTemp = temp
 		} else {
 			minTemp = temp
@@ -2076,7 +2405,7 @@ function rgb2kelvin(r: number, g: number, b: number) {
 _input.temperature = _input.kelvin = _input.K = kelvin2rgb
 
 function blend_f(f: (c1: RGB, c2: RGB) => RGB) {
-	return function(bottom: Chromable, top: Chromable) {
+	return function(bottom: chroma.Chromable, top: chroma.Chromable) {
 		const [r, g, b] = f(chroma(top).rgb(), chroma(bottom).rgb())
 		return chroma.rgb(r, g, b)
 	}
@@ -2108,50 +2437,106 @@ function _dodge(a: number, b: number) {
 	if (a == 255) {
 		return 255
 	}
-	return 255 * Math.min(1, b / 255 / (1 - a / 255))
+	return 255 * min(1, b / 255 / (1 - a / 255))
 }
 
-function hsl2rgb(h: number, s: number, l: number, a = 1): RGBA {
-	let r, g, b
-	if (s == 0) {
-		r = g = b = l * 255
+/**
+ * r, g, b can be in any interval (0-1 or 0-255)
+ * @param r
+ * @param g
+ * @param b
+ */
+function rgb2hexhue(r: number, g: number, b: number) {
+	const m = min(r, g, b)
+	const M = max(r, g, b)
+	const delta = M - m
+	let hueTurnX6 // angle as value between 0 and 6
+	if (0 == delta) {
+		hueTurnX6 = 0
+	} else if (r == M) {
+		// second term to make sure the value is > 0
+		hueTurnX6 = (g - b) / delta + (g < b ? 6 : 0)
+	} else if (g == M) {
+		hueTurnX6 = 2 + (b - r) / delta
 	} else {
-		const t3 = [0, 0, 0]
-		const c = [0, 0, 0]
-		const t2 = l < 0.5 ? l * (1 + s) : l + s - l * s
-		const t1 = 2 * l - t2
-		h /= 360
-		t3[0] = h + 1 / 3
-		t3[1] = h
-		t3[2] = h - 1 / 3
-		for (let i = 0; i <= 2; i++) {
-			if (t3[i] < 0) {
-				t3[i] += 1
-			}
-			if (t3[i] > 1) {
-				t3[i] -= 1
-			}
-			if (6 * t3[i] < 1) {
-				c[i] = t1 + (t2 - t1) * 6 * t3[i]
-			} else if (2 * t3[i] < 1) {
-				c[i] = t2
-			} else if (3 * t3[i] < 2) {
-				c[i] = t1 + (t2 - t1) * (2 / 3 - t3[i]) * 6
-			} else {
-				c[i] = t1
-			}
-		}
-		;[r, g, b] = [c[0] * 255, c[1] * 255, c[2] * 255]
+		hueTurnX6 = 4 + (r - g) / delta
 	}
-	return [r, g, b, a]
+	return [hueTurnX6 * 60, m, M]
+}
+function hcxm2rgb(hueDegrees: number, c1: number, x1: number, m1: number, alpha1: number): RGBA {
+	const m255 = m1 * 255
+	const cm255 = c1 * 255 + m255
+	const xm255 = x1 * 255 + m255
+	if (hueDegrees < 60) {
+		return [cm255, xm255, m255, alpha1]
+	} else if (hueDegrees < 120) {
+		return [xm255, cm255, m255, alpha1]
+	} else if (hueDegrees < 180) {
+		return [m255, cm255, xm255, alpha1]
+	} else if (hueDegrees < 240) {
+		return [m255, xm255, cm255, alpha1]
+	} else if (hueDegrees < 300) {
+		return [xm255, m255, cm255, alpha1]
+	} else {
+		return [cm255, m255, xm255, alpha1]
+	}
 }
 
-function cielab2rgb(LStart: number, aStar: number, bStar: number, alpha = 1): RGBA {
-	const [x, y, z] = cielab2xyz(LStart, aStar, bStar)
+/**
+ * https://en.wikipedia.org/w/index.php?title=HSL_and_HSV&oldid=856714654#From_HSL
+ */
+function hsl2rgb(hueDegrees: number, s1: number, l1: number, alpha1 = 1): RGBA {
+	hueDegrees = norm360(hueDegrees)
+	const c1 = (1 - abs(2 * l1 - 1)) * s1
+	return hcxm2rgb(hueDegrees, c1, c1 * (1 - abs(((hueDegrees / 60) % 2) - 1)), l1 - c1 / 2, alpha1)
+}
+function rgb2hsl(r255: number, g255: number, b255: number): HSL {
+	const [hue, min1, max1] = rgb2hexhue(r255 / 255, g255 / 255, b255 / 255)
+	const l1 = (max1 + min1) / 2
+	let s1: number
+	if (max1 == min1) {
+		s1 = 0
+	} else {
+		s1 = l1 < 0.5 ? (max1 - min1) / (max1 + min1) : (max1 - min1) / (2 - max1 - min1)
+	}
+	return [hue, s1, l1]
+}
+
+function hsv2rgb(hueDegrees: number, s1: number, v1: number, alpha1: number = 1): RGBA {
+	hueDegrees = norm360(hueDegrees)
+	const c1 = v1 * s1
+	return hcxm2rgb(hueDegrees, c1, c1 * (1 - abs(((hueDegrees / 60) % 2) - 1)), v1 - c1, alpha1)
+}
+
+function rgb2hsv(r255: number, g255: number, b255: number): HSV {
+	const [hue, min255, max255] = rgb2hexhue(r255, g255, b255)
+	const delta255 = max255 - min255
+	const v1 = max255 / 255.0
+	const s1 = max255 == 0 ? 0 : delta255 / max255
+	return [hue, s1, v1]
+}
+
+function hcg2rgb(hueDegrees: number, c1: number, g1: number, alpha1 = 1): RGBA {
+	hueDegrees = norm360(hueDegrees)
+	const p = g1 * (1 - c1)
+	return hcxm2rgb(hueDegrees, c1, c1 * (1 - abs(((hueDegrees / 60) % 2) - 1)), p, alpha1)
+}
+
+function rgb2hcg(r255: number, g255: number, b255: number): HCG {
+	const [hue, min255, max255] = rgb2hexhue(r255, g255, b255)
+	const c1 = (max255 - min255) / 255
+	const _g1 = c1 < 1 ? min255 / 255 / (1 - c1) : 0
+	return [hue, c1, _g1]
+}
+
+_input.hcg = hcg2rgb
+
+function cielab2rgb(LStar100: number, aStar: number, bStar: number, alpha = 1): RGBA {
+	const [x, y, z] = cielab2xyz(LStar100, aStar, bStar)
 	return xyz2rgb(x, y, z, alpha)
 }
 
-function cielab2xyz(LStar: number, aStar: number, bStar: number) {
+function cielab2xyz(LStar100: number, aStar: number, bStar: number) {
 	function fInv(t: number) {
 		if (t > LAB_delta) {
 			return t ** 3
@@ -2160,16 +2545,16 @@ function cielab2xyz(LStar: number, aStar: number, bStar: number) {
 		}
 	}
 	return [
-		LAB_Xn * fInv((LStar + 16) / 116 + aStar / 500),
-		LAB_Yn * fInv((LStar + 16) / 116),
-		LAB_Zn * fInv((LStar + 16) / 116 - bStar / 200),
+		LAB_Xn * fInv((LStar100 + 16) / 116 + aStar / 500),
+		LAB_Yn * fInv((LStar100 + 16) / 116),
+		LAB_Zn * fInv((LStar100 + 16) / 116 - bStar / 200),
 	]
 }
 function xyz2cielab(x: number, y: number, z: number): LAB {
 	// https://en.wikipedia.org/w/index.php?title=CIELAB_color_space&oldid=849576085#Forward_transformation
 	function f(t: number) {
 		if (t > LAB_deltaPow3) {
-			return Math.cbrt(t)
+			return cbrt(t)
 		} else {
 			return t / LAB_3DeltaPow2 + 4 / 29
 		}
@@ -2187,103 +2572,99 @@ const LAB_3DeltaPow2 = 0.12841855 // 3 * delta ** 2
 const LAB_deltaPow3 = 0.008856452 // delta ** 3
 // }
 
-function rgb2lab(r: number, g: number, b: number): RGB {
-	const [x, y, z] = rgb2xyz(r, g, b)
+function rgb2lab(r255: number, g255: number, b255: number): RGB {
+	const [x, y, z] = rgb2xyz(r255, g255, b255)
 	return xyz2cielab(x, y, z)
 }
 
-function rgb2xyz(r: number, g: number, b: number): XYZ {
+function rgb2xyz(r255: number, g255: number, b255: number): XYZ {
 	// https://en.wikipedia.org/wiki/SRGB#The_reverse_transformation
-	const rLinear = rgbChannel2RgbLinear(r)
-	const gLinear = rgbChannel2RgbLinear(g)
-	const bLinear = rgbChannel2RgbLinear(b)
-	const X = 0.4124564 * rLinear + 0.3575761 * gLinear + 0.1804375 * bLinear
-	const Y = 0.2126729 * rLinear + 0.7151522 * gLinear + 0.072175 * bLinear
-	const Z = 0.0193339 * rLinear + 0.119192 * gLinear + 0.9503041 * bLinear
+	const r1Linear = rgbChannel2RgbLinear(r255)
+	const g1Linear = rgbChannel2RgbLinear(g255)
+	const b1Linear = rgbChannel2RgbLinear(b255)
+	const X = 0.4124564 * r1Linear + 0.3575761 * g1Linear + 0.1804375 * b1Linear
+	const Y = 0.2126729 * r1Linear + 0.7151522 * g1Linear + 0.072175 * b1Linear
+	const Z = 0.0193339 * r1Linear + 0.119192 * g1Linear + 0.9503041 * b1Linear
 	return [X, Y, Z]
 }
-function xyz2rgb(X0_1: number, Y0_1: number, Z0_1: number, alpha0_1 = 1): RGBA {
+function xyz2rgb(X1: number, Y1: number, Z1: number, alpha1 = 1): RGBA {
 	// https://en.wikipedia.org/wiki/SRGB#The_forward_transformation_(CIE_XYZ_to_sRGB)
-	const rLinear = 3.2404542 * X0_1 - 1.5371385 * Y0_1 - 0.4985314 * Z0_1
-	const gLinear = -0.969266 * X0_1 + 1.8760108 * Y0_1 + 0.041556 * Z0_1
-	const bLinear = 0.0556434 * X0_1 - 0.2040259 * Y0_1 + 1.0572252 * Z0_1
-	return [rgbLinearChannel2Rgb(rLinear), rgbLinearChannel2Rgb(gLinear), rgbLinearChannel2Rgb(bLinear), alpha0_1]
+	const r1Linear = 3.2404542 * X1 - 1.5371385 * Y1 - 0.4985314 * Z1
+	const g1Linear = -0.969266 * X1 + 1.8760108 * Y1 + 0.041556 * Z1
+	const b1Linear = 0.0556434 * X1 - 0.2040259 * Y1 + 1.0572252 * Z1
+	return [rgbLinearChannel2Rgb(r1Linear), rgbLinearChannel2Rgb(g1Linear), rgbLinearChannel2Rgb(b1Linear), alpha1]
 }
 
 _input.xyz = xyz2rgb
 _input.lab = cielab2rgb
 
-function hsi2rgb(hDegrees: number, s: number, i: number, a = 1): RGBA {
+function hsi2rgb(hueDegrees: number, s1: number, i1: number, alpha1 = 1): RGBA {
 	/*
     borrowed from here:
     http://hummer.stanford.edu/museinfo/doc/examples/humdrum/keyscape2/hsi2rgb.cpp
      */
 	let r, g, b
-	let hRad = hDegrees * DEG2RAD
+	let hRad = hueDegrees * DEG2RAD
 	if (hRad < (2 * PI) / 3) {
-		b = (1 - s) / 3
-		r = (1 + (s * cos(hRad)) / cos(PI / 3 - hRad)) / 3
+		b = (1 - s1) / 3
+		r = (1 + (s1 * cos(hRad)) / cos(PI / 3 - hRad)) / 3
 		g = 1 - (b + r)
 	} else if (hRad < (4 * PI) / 3) {
 		hRad -= (2 * PI) / 3
-		r = (1 - s) / 3
-		g = (1 + (s * cos(hRad)) / cos(PI / 3 - hRad)) / 3
+		r = (1 - s1) / 3
+		g = (1 + (s1 * cos(hRad)) / cos(PI / 3 - hRad)) / 3
 		b = 1 - (r + g)
 	} else {
 		hRad -= (4 * PI) / 3
-		g = (1 - s) / 3
-		b = (1 + (s * cos(hRad)) / cos(PI / 3 - hRad)) / 3
+		g = (1 - s1) / 3
+		b = (1 + (s1 * cos(hRad)) / cos(PI / 3 - hRad)) / 3
 		r = 1 - (g + b)
 	}
-	return [3 * i * r * 255, 3 * i * g * 255, 3 * i * b * 255, a]
+	return [3 * i1 * r * 255, 3 * i1 * g * 255, 3 * i1 * b * 255, alpha1]
 }
 
-function rgb2hsi(r: number, g: number, b: number): HSI {
-	/*
-    borrowed from here:
-    http://hummer.stanford.edu/museinfo/doc/examples/humdrum/keyscape2/rgb2hsi.cpp
-     */
-	r /= 255
-	g /= 255
-	b /= 255
-	const i = (r + g + b) / 3
-	let h, s
-	if (r == g && g == b) {
-		h = 0
-		s = 0
+/**
+ * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link.
+ */
+function rgb2hsi(r255: number, g255: number, b255: number): HSI {
+	// See https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
+	// See https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
+	const r1 = r255 / 255
+	const g1 = g255 / 255
+	const b1 = b255 / 255
+	const i1 = (r1 + g1 + b1) / 3
+	if (r1 == g1 && g1 == b1) {
+		return [0, 0, i1]
 	} else {
-		const min = Math.min(r, g, b)
-		h = Math.acos((r - g + (r - b)) / 2 / Math.sqrt((r - g) ** 2 + (r - b) * (g - b)))
-		if (b > g) {
-			h = TWOPI - h
-		}
-		s = 1 - min / i
+		const alpha = (1 / 2) * (2 * r1 - g1 - b1)
+		const beta = (sqrt(3) / 2) * (g1 - b1)
+		const hRad = atan2(beta, alpha)
+		const min1 = min(r1, g1, b1)
+		const s1 = 1 - min1 / i1
+		return [(hRad < 0 ? 2 * PI + hRad : hRad) * RAD2DEG, s1, i1]
 	}
-	return [h * RAD2DEG, s, i]
 }
 
 _input.hsi = hsi2rgb
 
-function interpolate_hsx(color1: Color, color2: Color, f: number, m: "hsv" | "hsl" | "hsi" | "hcl" | "lch" | "hcg") {
-	if ("lch" == m) m = "hcl"
-	if (m.substr(0, 1) !== "h") {
-		throw new Error()
+interpolators.hsv = interpolators.hsl = interpolators.hsi = interpolators.lch = interpolators.hcg = function interpolate_hsx(
+	color1: chroma.Color,
+	color2: chroma.Color,
+	f: number,
+	m: "hsv" | "hsl" | "hsi" | "lch" | "hcg",
+) {
+	const [a1, b1, c1] = color1[m]()
+	const [a2, b2, c2] = color2[m]()
+	function lerpHue(hue1: number, hue2: number, f: number) {
+		const dh = norm360(hue2 - hue1 + 180) - 180
+		return hue1 + f * dh
 	}
-	const [hue0, sat0, lbv0] = color1[m]()
-	const [hue1, sat1, lbv1] = color2[m]()
-	let dh
-	if (hue1 > hue0 && hue1 - hue0 > 180) {
-		dh = hue1 - (hue0 + 360)
-	} else if (hue1 < hue0 && hue0 - hue1 > 180) {
-		dh = hue1 + 360 - hue0
-	} else {
-		dh = hue1 - hue0
-	}
-	const hue = hue0 + f * dh
-	return chroma[m](hue, lerp(sat0, sat1, f), lerp(lbv0, lbv1, f))
+	return chroma[m](
+		("h" == m.charAt(0) ? lerpHue : lerp)(a1, a2, f),
+		lerp(b1, b2, f),
+		("h" == m.charAt(2) ? lerpHue : lerp)(c1, c2, f),
+	)
 }
-
-;["hsv", "hsl", "hsi", "hcl", "lch", "hcg"].forEach(mode => (interpolators[mode] = interpolate_hsx as any))
 
 function indexOfMax<T>(arr: ArrayLike<T>, f: (el: T) => number) {
 	let maxValue = -Infinity,

@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.colorsExtended = {
     Acadia: 0x35312c,
     Acapulco: 0x75aa94,
@@ -1587,5 +1587,5 @@ exports.colorsExtended = {
     Zombie: 0xddc283,
     Zorba: 0xa29589,
     Zuccini: 0x17462e,
-    Zumthor: 0xcdd5d5
+    Zumthor: 0xcdd5d5,
 };

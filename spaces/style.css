@@ -1,11 +1,17 @@
-body {
+* {
+	box-sizing: border-box;
+	padding: 0;
 	margin: 0;
+}
+body {
 	font-family: "OpenSans", sans-serif;
 	font-size: smaller;
 }
-#container {
-	display: flex;
+html, body, #vcs-root {
 	height: 100%;
+}
+#vcs-root {
+	display: flex;
 }
 .picker {
 	width: 14em;
@@ -40,16 +46,19 @@ body {
 }
 #spacesCanvas {
 	display: block;
-	width: 800px;
-	height: 600px;
-	/* flex-grow: 1; */
-	/* width: 100%; */
+	/* width: 800px;
+	height: 600px; */
+	flex-grow: 1;
+	width: 100%;
 }
 #info {
 	height: 40px;
+	display: flex;
 }
 #info > * {
-	display: inline-block;
+	/* display: inline-block; */
+	flex-grow: 1;
+	padding: 0px 8px;
 	height: 100%;
 	vertical-align: top;
 	line-height: 39px;

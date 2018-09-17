@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"lib": ["dom", "esnext"],
 		"jsx": "react",
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"rootDir": "..",
+		"resolveJsonModule": false
 	},
 	"include": [
 		"./*.ts",

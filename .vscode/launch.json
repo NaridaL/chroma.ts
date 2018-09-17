@@ -7,6 +7,43 @@
 		{
 			"type": "node",
 			"request": "launch",
+			"name": "gendoc",
+			"runtimeArgs": ["--require", "ts-node/register/transpile-only"],
+			"args": ["${workspaceFolder}/gendoc.tsx"]
+		},
+		{
+			"type": "chrome",
+			"request": "attach",
+			"name": "Attach to Chrome",
+			"port": 9222,
+			"webRoot": "${workspaceFolder}"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Mocha",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/mocha",
+			"env": {
+				"TS_NODE_TRANSPILE_ONLY": "1",
+				"TEST_SRC": "1"
+			},
+			"stopOnEntry": true,
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+				"--ui",
+				"tdd",
+				// "--require", "ts-node/register",
+				"--require",
+				"ts-node/register",
+				"test/**/*.test.ts",
+				"--grep",
+				"mix"
+			],
+			"sourceMaps": true
+		},
+		{
+			"type": "node",
+			"request": "launch",
 			"name": "vows",
 			"program": "${workspaceFolder}\\node_modules\\vows\\bin\\vows",
 			"args": ["--dot-matrix"],

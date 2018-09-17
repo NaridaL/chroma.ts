@@ -6,15 +6,17 @@ import serve from "rollup-plugin-serve"
 import livereload from "rollup-plugin-livereload"
 import replace from "rollup-plugin-replace"
 import glsl from "rollup-plugin-glsl"
+import { plugin as analyze } from "rollup-plugin-analyzer"
 import * as typescript from "typescript"
 import * as fs from "fs"
+import { terser } from "rollup-plugin-terser"
 
 const pkg = JSON.parse(fs.readFileSync("package.json"))
 export default {
 	input: __dirname + "/index.ts",
 	output: {
 		format: "iife",
-		file: __dirname + "/bundle.js",
+		file: __dirname + (process.env.BUILD == "production" ? "/bundle.min.js" : "/bundle.js"),
 		sourcemap: true,
 		name: "spaces",
 		globals: {
@@ -100,7 +102,7 @@ export default {
 			// ignore: [ 'conditional-runtime-dependency' ]
 		}),
 		replace({
-			"process.env.NODE_ENV": JSON.stringify("development"),
+			"process.env.NODE_ENV": JSON.stringify(process.env.BUILD || "development"),
 		}),
 		sourcemaps(),
 		glsl({
@@ -116,19 +118,31 @@ export default {
 		typescriptPlugin({
 			typescript,
 			tsconfig: __dirname + "/tsconfig.json",
+			declaration: false,
 		}),
+		process.env.BUILD == "production" &&
+			terser({
+				// mangle: false,
+				// output: {
+				// 	beautify: true,
+				// },
+				compress: {
+					passes: 4,
+				},
+				toplevel: true,
+			}),
 		process.env.ROLLUP_WATCH &&
 			serve({
 				contentBase: ".",
 				open: true,
+				openPage: '/spaces/index.html',
 				host: "localhost",
 				port: 10002,
 			}),
 		process.env.ROLLUP_WATCH && livereload(),
+		process.env.BUILD == "production" && analyze(),
 	].filter(x => x),
 	onwarn: function(warning, warn) {
-		// Suppress this error message... there are hundreds of them. Angular team says to ignore it.
-		// https://github.com/rollup/rollup/wiki/Troubleshooting#this-is-undefined
 		if ("THIS_IS_UNDEFINED" === warning.code) return
 		// if ('CIRCULAR_DEPENDENCY' === warning.code) return
 		warn(warning)
