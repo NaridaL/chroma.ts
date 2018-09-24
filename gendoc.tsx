@@ -50,6 +50,17 @@ turndownService.addRule("keep", {
 		return node.outerHTML
 	},
 })
+// turndownService.addRule("inlineLink", {
+// 	filter: function(node, options) {
+// 		return options.linkStyle === "inlined" && node.nodeName === "A" && node.getAttribute("href")
+// 	},
+
+// 	replacement: function(content, node) {
+// 		var href = node.getAttribute("href")
+// 		var title = node.title ? ' "' + node.title + '"' : ""
+// 		return "[" + content + "](" + encodeURI(href) + title + ")"
+// 	},
+// })
 
 const sorter = (a: any, b: any) => a.sources[0].line - b.sources[0].line
 
@@ -136,7 +147,7 @@ function Comment(props: { of: any }) {
 						const hexes = Array.from({ length: s }, (_, i) => scale(lerp(min, max, i / (s - 1))))
 							.map(c => c.hex().substr(1))
 							.join("")
-						return "http://localhost:10002/spaces/index.html#" + name + "-" + hexes
+						return "http://localhost:10002/spaces/index.html#" + encodeURI(name) + "-" + hexes
 					}
 
 					if ("example" === tag) {
@@ -159,12 +170,11 @@ function Comment(props: { of: any }) {
 								const scale = x.domain ? x : chroma.scale(x)
 								const imgName = genScale(scale)
 
-								return out(
-									text,
+								return out(text, [
 									<a href={getScaleLink(scale, text)}>
 										<img align="right" src={imgName} />
 									</a>,
-								)
+								])
 							} else if (Array.isArray(x)) {
 								resultOutput = (
 									<>

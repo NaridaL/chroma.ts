@@ -4,7 +4,7 @@
 	"jsRules": {},
 	"rules": {
 		"no-var-keyword": true,
-		"yoda": true,
+		// "yoda": true,
 		"member-access": true,
 		"member-ordering": [
 			true,

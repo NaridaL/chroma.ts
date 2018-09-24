@@ -31,6 +31,11 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * main comment
+ */
+
+/** foo */
 const { abs, atan2, cos, floor, log, min, max, round, sign, sin, sqrt, cbrt, PI, hypot } = Math
 
 function lerp(a: number, b: number, f: number) {
@@ -92,6 +97,10 @@ function chroma(red255: number, green255: number, blue255: number, alpha1?: numb
  * @example chroma([30, 0.8, 0.3], 'hsl') // explicit format
  */
 function chroma(x: chroma.Chromable, format?: ColorFormat): chroma.Color
+/**
+ * This overload allows VS Code to suggest color names when you type `chroma('`.
+ */
+function chroma(colorname: keyof typeof chroma.w3cx11, format?: "name"): chroma.Color
 /** @example chroma(30, 0.8, 0.3, 'hsl') */
 function chroma(channel0: number, channel1: chroma.Color, channel2: number, format: ColorFormat): chroma.Color
 /** @example chroma(0.3, 0.8, 0.3, 1, 'gl') */
@@ -1458,7 +1467,7 @@ namespace chroma {
 		 */
 		public out<M extends ColorFormat | undefined>(
 			outputFormat: M,
-		): M extends ColorFormat ? ReturnType<Color[M]> : Color {
+		): Scale<M extends ColorFormat ? ReturnType<Color[M]> : Color> {
 			this._out = outputFormat
 			return this as any
 		}
@@ -1756,11 +1765,11 @@ namespace chroma {
 		const c2 = sqrt(a2 * a2 + b2 * b2)
 		const sl = L1 < 16.0 ? 0.511 : (0.040975 * L1) / (1.0 + 0.01765 * L1)
 		const sc = (0.0638 * c1) / (1.0 + 0.0131 * c1) + 0.638
-		const h1 = norm360(c1 < 0.000001 ? 0.0 : (atan2(b1, a1) * 180.0) / PI)
+		const h1 = norm360(c1 < 0.000001 ? 0.0 : atan2(b1, a1) * RAD2DEG)
 		const t =
 			h1 >= 164.0 && h1 <= 345.0
-				? 0.56 + abs(0.2 * cos((PI * (h1 + 168.0)) / 180.0))
-				: 0.36 + abs(0.4 * cos((PI * (h1 + 35.0)) / 180.0))
+				? 0.56 + abs(0.2 * cos((h1 + 168.0) * DEG2RAD))
+				: 0.36 + abs(0.4 * cos((h1 + 35.0) * DEG2RAD))
 		const c4 = c1 * c1 * c1 * c1
 		const f = sqrt(c4 / (c4 + 1900.0))
 		const sh = sc * (f * t + 1.0 - f)
@@ -1808,7 +1817,7 @@ namespace chroma {
 		return r
 	}
 
-	type LimitsMode = "e" | "q" | "l" | "k"
+	type LimitsMode = "c" | "e" | "q" | "l" | "k"
 	export function limits(data: number[] | DataInfo, mode: LimitsMode = "e", num = 7): number[] {
 		const info = Array.isArray(data) ? analyze(data) : data
 		const { min, max, values } = info
@@ -2598,6 +2607,10 @@ function xyz2rgb(X1: number, Y1: number, Z1: number, alpha1 = 1): RGBA {
 _input.xyz = xyz2rgb
 _input.lab = cielab2rgb
 
+/**
+ * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link. This is why we don't use
+ * hcxm2rgb.
+ */
 function hsi2rgb(hueDegrees: number, s1: number, i1: number, alpha1 = 1): RGBA {
 	/*
     borrowed from here:
@@ -2624,7 +2637,8 @@ function hsi2rgb(hueDegrees: number, s1: number, i1: number, alpha1 = 1): RGBA {
 }
 
 /**
- * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link.
+ * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link. This is why we don't use
+ * rgb2hexhue.
  */
 function rgb2hsi(r255: number, g255: number, b255: number): HSI {
 	// See https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
