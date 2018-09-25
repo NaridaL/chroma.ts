@@ -24,7 +24,7 @@ import ReactMarkdown from "react-markdown"
 // import docjson from "./doc.json"
 
 // const tmpName = tmpNameSync({ postfix: ".json" })
-const tmpName = "./doc.json"
+const tmpName = "./out/doc.json"
 console.log(tmpName)
 execSync("node node_modules/typedoc/bin/typedoc src/index.ts --json " + tmpName, {
 	cwd: __dirname,
@@ -66,11 +66,15 @@ const sorter = (a: any, b: any) => a.sources[0].line - b.sources[0].line
 
 const gzippedBundleSize = filesize(gzipSync(fs.readFileSync("./dist/index.umd.min.js", "utf8")).byteLength)
 console.log(gzippedBundleSize)
+const badges = `[![Travis](https://img.shields.io/travis/NaridaL/chroma.ts.svg?style=flat-square)](https://travis-ci.com/NaridaL/chroma.ts)
+[![npm](https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square)](https://www.npmjs.com/package/chroma.ts)
+[![David](https://img.shields.io/david/expressjs/express.svg?style=flat-square)](https://david-dm.org/NaridaL/chroma.ts)`
 
 function DocPage({ docJson }: { docJson: typeof docjson }) {
 	docJson.children[0].children.sort(sorter)
 	return (
 		<>
+			<ReactMarkdown source={badges} />
 			<h1>chroma.ts</h1>
 			TypeScript rewrite of <a href="https://github.com/gka/chroma.js">chroma-js</a>. Includes:
 			<ul>
@@ -486,5 +490,5 @@ const md = turndownService.turndown(html)
 const mdFileName = "README.md"
 const prevReadme = fs.readFileSync(mdFileName, "utf8")
 fs.writeFileSync(mdFileName, md, "utf8")
-fs.writeFileSync("README.html", html, "utf8")
+fs.writeFileSync("out/README.html", html, "utf8")
 process.exit(prevReadme == md ? 0 : 1)

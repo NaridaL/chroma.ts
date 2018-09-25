@@ -30,7 +30,8 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-const { abs, atan2, cos, floor, log, min, max, round, sin, sqrt, cbrt, PI, hypot } = Math;
+// tslint:disable:no-unnecessary-qualifier
+const { abs, atan2, cos, floor, log, min, max, round, sign, sin, sqrt, cbrt, PI, hypot } = Math;
 function lerp(a, b, f) {
     return a + (b - a) * f;
 }
@@ -49,27 +50,28 @@ function newtonIterate1d(f, xStart, max_steps, eps = 1e-8) {
     }
     return x;
 }
-// function bisect(f: (x: number) => number, a: number, b: number, steps: number) {
-// 	//assert(a < b)
-// 	let fA = f(a),
-// 		fB = f(b)
-// 	//assert(fA * fB < 0)
-// 	while (steps--) {
-// 		const c = (a + b) / 2
-// 		const fC = f(c)
-// 		console.log("fC", fC, "c", c)
-// 		if (sign(fA) == sign(fC)) {
-// 			a = c
-// 			fA = fC
-// 		} else {
-// 			b = c
-// 			fB = fC
-// 		}
-// 	}
-// 	//assert(a <= (b + a) / 2)
-// 	//assert(b >= (b + a) / 2)
-// 	return (a + b) / 2
-// }
+function bisect(f, a, b, steps) {
+    //assert(a < b)
+    let fA = f(a);
+    // let fB = f(b)
+    //assert(fA * fB < 0)
+    while (steps--) {
+        const c = (a + b) / 2;
+        const fC = f(c);
+        // console.log("fC", fC, "c", c)
+        if (sign(fA) == sign(fC)) {
+            a = c;
+            fA = fC;
+        }
+        else {
+            b = c;
+            // fB = fC
+        }
+    }
+    //assert(a <= (b + a) / 2)
+    //assert(b >= (b + a) / 2)
+    return (a + b) / 2;
+}
 const TWOPI = 2 * PI;
 const DEG2RAD = PI / 180;
 const RAD2DEG = 180 / PI;
@@ -1046,9 +1048,10 @@ var chroma$1 = chroma;
         for (const c of colors) {
             const xyz2 = c[mode]();
             alphaSum += c.alpha();
+            console.log(alphaSum);
             for (let i = 0; i < xyz.length; i++) {
                 if (mode.charAt(i) == "h") {
-                    const A = (xyz2[i] / 180) * PI;
+                    const A = xyz2[i] * DEG2RAD;
                     dx += cos(A);
                     dy += sin(A);
                 }
@@ -1164,13 +1167,13 @@ var chroma$1 = chroma;
         }
         /**
          * Set the output format return by `this(x)` and `this.colors(n)`.
-         * @param _o The color format to use. Pass `undefined` to return [Color] objects.
+         * @param outputFormat The color format to use. Pass `undefined` to return [Color] objects.
          * @return `this`
          * @example chroma.scale("red", "white").out("hex")(0) // == "#ff0000"
          * @example chroma.scale("red", "white").out("num").colors(2) // == [0xff0000, 0xffffff]
          */
-        out(_o) {
-            this._out = _o;
+        out(outputFormat) {
+            this._out = outputFormat;
             return this;
         }
         /**
@@ -1242,7 +1245,7 @@ var chroma$1 = chroma;
                 }
                 result = samples.map(s => this._color(s));
             }
-            return format ? result.map(c => c[format]()) : result;
+            return (format ? result.map(c => c[format]()) : result);
         }
         cache(enableCache) {
             if (undefined === enableCache) {
@@ -1258,10 +1261,16 @@ var chroma$1 = chroma;
             this._gamma = gamma;
             return this;
         }
+        /**
+         * @ignore
+         */
         _at(t) {
             const c = this._color(t);
             return this._out ? c[this._out]() : c;
         }
+        /**
+         * @ignore
+         */
         _init(colorsOrFunction) {
             this._colors = colorsOrFunction;
             if ("function" != typeof colorsOrFunction) {
@@ -1343,7 +1352,7 @@ var chroma$1 = chroma;
             const L0 = this._color(0, true).lab()[0];
             const L1 = this._color(1, true).lab()[0];
             const L_ideal = lerp(L0, L1, t0_1);
-            return newtonIterate1d(t => this._color(t, true).lab()[0] - L_ideal, t0_1, 8);
+            return bisect(t => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8);
         }
         _resetCache() {
             if (this._cache)
@@ -1388,7 +1397,8 @@ var chroma$1 = chroma;
     }
     chroma.contrast = contrast;
     /**
-     * Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two colors.
+     * Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two
+     * colors in a given color space.
      * @param a First color.
      * @param b Second color.
      * @param mode The color space in which to compute the distance. Defaults to "lab".
@@ -1425,10 +1435,10 @@ var chroma$1 = chroma;
         const c2 = sqrt(a2 * a2 + b2 * b2);
         const sl = L1 < 16.0 ? 0.511 : (0.040975 * L1) / (1.0 + 0.01765 * L1);
         const sc = (0.0638 * c1) / (1.0 + 0.0131 * c1) + 0.638;
-        const h1 = norm360(c1 < 0.000001 ? 0.0 : (atan2(b1, a1) * 180.0) / PI);
+        const h1 = norm360(c1 < 0.000001 ? 0.0 : atan2(b1, a1) * RAD2DEG);
         const t = h1 >= 164.0 && h1 <= 345.0
-            ? 0.56 + abs(0.2 * cos((PI * (h1 + 168.0)) / 180.0))
-            : 0.36 + abs(0.4 * cos((PI * (h1 + 35.0)) / 180.0));
+            ? 0.56 + abs(0.2 * cos((h1 + 168.0) * DEG2RAD))
+            : 0.36 + abs(0.4 * cos((h1 + 35.0) * DEG2RAD));
         const c4 = c1 * c1 * c1 * c1;
         const f = sqrt(c4 / (c4 + 1900.0));
         const sh = sc * (f * t + 1.0 - f);
@@ -1631,8 +1641,8 @@ function guess(args, mode) {
         else
             throw new Error("could not guess mode. args " + JSON.stringify(args));
     }
-    const [r, g, b, a] = _input[mode](...args);
-    return new chroma.Color(r, g, b, a);
+    const channels = _input[mode](...args);
+    return new chroma.Color(channels[0], channels[1], channels[2], undefined !== channels[3] ? channels[3] : 1);
 }
 function _average_lrgb(colors) {
     let rSquareSum = 0, gSquareSum = 0, bSquareSum = 0, alphaSum = 0;
@@ -1660,6 +1670,24 @@ function hex2rgb(hex) {
     }
     throw new Error("invalid hex color: " + hex);
 }
+// interface ColorModes {
+// 	cmyk: CMYK
+// 	gl: GL
+// 	rgb: RGB
+// 	rgba: RGBA
+// 	lab: LAB
+// 	hsl: HSL
+// 	hsv: HSV
+// 	hsi: HSI
+// 	xyz: XYZ
+// 	hcg: HCG
+// 	lch: LCH
+// 	hex: string
+// 	num: number
+// 	name: string
+// 	kelvin: number
+// 	css: string
+// }
 function rgb2hex(r255, g255, b255, a1, mode = "rgb") {
     r255 = clamp(round(r255), 0, 255);
     g255 = clamp(round(g255), 0, 255);
@@ -2089,6 +2117,10 @@ function xyz2rgb(X1, Y1, Z1, alpha1 = 1) {
 }
 _input.xyz = xyz2rgb;
 _input.lab = cielab2rgb;
+/**
+ * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link. This is why we don't use
+ * hcxm2rgb.
+ */
 function hsi2rgb(hueDegrees, s1, i1, alpha1 = 1) {
     /*
     borrowed from here:
@@ -2116,7 +2148,8 @@ function hsi2rgb(hueDegrees, s1, i1, alpha1 = 1) {
     return [3 * i1 * r * 255, 3 * i1 * g * 255, 3 * i1 * b * 255, alpha1];
 }
 /**
- * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link.
+ * For HSI, we use the direct angle calculation. I.e. atan2(beta, alpha). See wikipedia link. This is why we don't use
+ * rgb2hexhue.
  */
 function rgb2hsi(r255, g255, b255) {
     // See https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma

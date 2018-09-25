@@ -31,11 +31,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * main comment
- */
+// tslint:disable:no-unnecessary-qualifier
 
-/** foo */
 const { abs, atan2, cos, floor, log, min, max, round, sign, sin, sqrt, cbrt, PI, hypot } = Math
 
 function lerp(a: number, b: number, f: number) {
@@ -60,8 +57,8 @@ function newtonIterate1d(f: (x: number) => number, xStart: number, max_steps: nu
 }
 function bisect(f: (x: number) => number, a: number, b: number, steps: number) {
 	//assert(a < b)
-	let fA = f(a),
-		fB = f(b)
+	let fA = f(a)
+	// let fB = f(b)
 	//assert(fA * fB < 0)
 	while (steps--) {
 		const c = (a + b) / 2
@@ -72,7 +69,7 @@ function bisect(f: (x: number) => number, a: number, b: number, steps: number) {
 			fA = fC
 		} else {
 			b = c
-			fB = fC
+			// fB = fC
 		}
 	}
 	//assert(a <= (b + a) / 2)
@@ -1241,9 +1238,11 @@ namespace chroma {
 		for (const c of colors) {
 			const xyz2 = c[mode]()
 			alphaSum += c.alpha()
+			console.log(alphaSum)
+
 			for (let i = 0; i < xyz.length; i++) {
 				if (mode.charAt(i) == "h") {
-					const A = (xyz2[i] / 180) * PI
+					const A = xyz2[i] * DEG2RAD
 					dx += cos(A)
 					dy += sin(A)
 				} else {
@@ -1600,12 +1599,18 @@ namespace chroma {
 			return this
 		}
 
-		private _at(t: number) {
+		/**
+		 * @ignore
+		 */
+		public _at(t: number) {
 			const c = this._color(t)
 			return this._out ? c[this._out]() : c
 		}
 
-		private _init(colorsOrFunction: Color[] | ((t: number) => Color)) {
+		/**
+		 * @ignore
+		 */
+		public _init(colorsOrFunction: Color[] | ((t: number) => Color)) {
 			this._colors = colorsOrFunction
 			if ("function" != typeof colorsOrFunction) {
 				this._pos = colorsOrFunction.map((_, i) => i / (colorsOrFunction.length - 1))
@@ -1726,7 +1731,8 @@ namespace chroma {
 	}
 
 	/**
-	 * Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two colors.
+	 * Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two
+	 * colors in a given color space.
 	 * @param a First color.
 	 * @param b Second color.
 	 * @param mode The color space in which to compute the distance. Defaults to "lab".
@@ -1986,8 +1992,8 @@ function guess(args: any[], mode?: ColorFormat): chroma.Color {
 			mode = "num"
 		} else throw new Error("could not guess mode. args " + JSON.stringify(args))
 	}
-	const [r, g, b, a] = _input[mode](...args)
-	return new chroma.Color(r, g, b, a)
+	const channels = _input[mode](...args)
+	return new chroma.Color(channels[0], channels[1], channels[2], undefined !== channels[3] ? channels[3] : 1)
 }
 
 function _average_lrgb(colors: chroma.Color[]) {
@@ -2010,7 +2016,7 @@ function _average_lrgb(colors: chroma.Color[]) {
 	)
 }
 
-function hex2rgb(hex: string): RGBA | RGB {
+function hex2rgb(hex: string): RGBA {
 	let m
 	if ((m = hex.match(/^#?([A-F\d]{2})([A-F\d]{2})([A-F\d]{2})([A-F\d]{2})?$/i))) {
 		return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), m[4] ? parseInt(m[4], 16) / 255 : 1]
@@ -2175,7 +2181,7 @@ const CSS_HSL_WS_REGEX = new RegExp(
 	["^hsla?\\(", FLOAT + "(deg|rad|turn)?\\s+" + FLOAT + "%", FLOAT + "%", "(?:/", FLOAT + "(%)?", ")?\\)$"].join(WS),
 	"i",
 )
-function css2rgb(css: string): RGBA | RGB {
+function css2rgb(css: string): RGBA {
 	if (chroma.w3cx11 && (chroma.w3cx11 as any)[css.toLowerCase()]) {
 		return num2rgb((chroma.w3cx11 as any)[css.toLowerCase()])
 	}

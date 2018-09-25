@@ -5,5 +5,8 @@
     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */,
     "noUnusedLocals": false,
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "include": [
+    "./*.ts"
+  ]
 }

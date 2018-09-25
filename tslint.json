@@ -19,7 +19,6 @@
 			}
 		],
 		"no-unused-expression": true,
-		"no-unused-variable": true,
 		"no-unnecessary-qualifier": true,
 		"no-null-keyword": true,
 		"no-unnecessary-type-assertion": true,
