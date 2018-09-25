@@ -950,3 +950,4 @@ declare type XYZ = [number, number, number];
  * `g` is the gray value in [0; 1]
  */
 declare type HCG = [number, number, number];
+//# sourceMappingURL=index.d.ts.map

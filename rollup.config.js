@@ -22,8 +22,11 @@ function config(format /* : "umd" | "es" */, compress /*: boolean */) {
 						resolveJsonModule: false,
 						module: "esnext",
 						moduleResolution: "node",
+						sourceRoot: null,
+						declarationMap: true,
 					},
 				},
+				useTsconfigDeclarationDir: true,
 			}),
 			compress &&
 				terser({
