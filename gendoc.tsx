@@ -1,5 +1,5 @@
 import ReactDOMServer from "react-dom/server"
-import chroma from "./src/index"
+import * as chroma from "./src/index"
 import {
 	DeclarationReflection,
 	Type,
@@ -11,7 +11,7 @@ import {
 import * as React from "react"
 import { ReactNode, ReactElement } from "react"
 import * as fs from "fs"
-import { lerp, lerpInv, round10 } from "ts3dutils"
+import { removeJSComments, lerp, lerpInv, round10 } from "ts3dutils"
 import { tmpNameSync } from "tmp"
 import { execSync } from "child_process"
 import filesize from "filesize"
@@ -25,11 +25,13 @@ import ReactMarkdown from "react-markdown"
 
 // const tmpName = tmpNameSync({ postfix: ".json" })
 const tmpName = "./out/doc.json"
-console.log(tmpName)
-execSync("node node_modules/typedoc/bin/typedoc src/index.ts --json " + tmpName, {
-	cwd: __dirname,
-	stdio: "inherit",
-})
+if (!process.argv.includes("--reusejson")) {
+	// console.log("Writing typedoc --json to " + tmpName)
+	execSync("node node_modules/typedoc/bin/typedoc src/index.ts --json " + tmpName, {
+		cwd: __dirname,
+		stdio: "inherit",
+	})
+}
 const docjson = require(tmpName)
 
 // @ts-ignore
@@ -65,7 +67,7 @@ turndownService.addRule("keep", {
 const sorter = (a: any, b: any) => a.sources[0].line - b.sources[0].line
 
 const gzippedBundleSize = filesize(gzipSync(fs.readFileSync("./dist/index.umd.min.js", "utf8")).byteLength)
-console.log(gzippedBundleSize)
+console.log("gzippedBundleSize:", gzippedBundleSize)
 const badges = `[![Travis](https://img.shields.io/travis/NaridaL/chroma.ts.svg?style=flat-square)](https://travis-ci.com/NaridaL/chroma.ts)
 [![npm](https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square)](https://www.npmjs.com/package/chroma.ts)
 [![David](https://img.shields.io/david/expressjs/express.svg?style=flat-square)](https://david-dm.org/NaridaL/chroma.ts)`
@@ -131,9 +133,9 @@ function Comment(props: { of: any }) {
 			<ReactMarkdown source={shortText} />
 			<ReactMarkdown source={text} />
 			{tags &&
-				tags.map(({ tag, text }: { tag: string; text: string }) => {
+				tags.map(({ tag, text }: { tag: string; text: string }, tagIndex) => {
 					const out = (text: string, result?: React.ReactNode) => (
-						<>
+						<React.Fragment key={tagIndex}>
 							<em>example</em>{" "}
 							<code>
 								{text
@@ -142,9 +144,9 @@ function Comment(props: { of: any }) {
 									.trim()}
 							</code>{" "}
 							{result} <br />
-						</>
+						</React.Fragment>
 					)
-					const getScaleLink = (scale: Scale, name: string) => {
+					const getScaleLink = (scale: chroma.Scale, name: string) => {
 						const d = scale.domain()
 						const [min, max] = [d[0], d[d.length - 1]]
 						const s = 100
@@ -155,6 +157,7 @@ function Comment(props: { of: any }) {
 					}
 
 					if ("example" === tag) {
+						const sanitizedSource = removeJSComments(text).trim()
 						const evalFunction = "return (\n" + text + "\n)"
 						const format = (x: any) => {
 							if ("number" == typeof x) {
@@ -165,9 +168,10 @@ function Comment(props: { of: any }) {
 							return JSON.stringify(x)
 						}
 						try {
-							const x = new Function("chroma", evalFunction)(chroma)
+							const x = sanitizedSource.length !== 0 && new Function("chroma", evalFunction)(chroma)
 							let resultOutput
-							if (x instanceof chroma.Color) {
+							if (sanitizedSource.length == 0) {
+							} else if (x instanceof chroma.Color) {
 								const imgName = genColorIcon(x)
 								return out(text, <img align="right" src={imgName} />)
 							} else if ("function" == typeof x) {
@@ -268,7 +272,7 @@ function Method({
 	return (
 		<>
 			{signatures.map((sig, i) => (
-				<Signature of={sig} prefix={prefix} src={sources[i]} />
+				<Signature key={i} of={sig} prefix={prefix} src={sources[i]} />
 			))}
 			<Comment of={comment} />
 			{children && children.sort(sorter) && children.map(c => render(c, name))}
@@ -288,7 +292,7 @@ function render(child: any, prefix: string): React.ReactNode {
 		return undefined
 	}
 	if (!What) throw new Error(child.kindString)
-	return What && <What of={child} prefix={prefix} />
+	return What && <What key={child.name} of={child} prefix={prefix} />
 }
 function reactJoin(x: React.ReactNode[], joiner: React.ReactNode = ", ") {
 	const result: React.ReactNode[] = []
@@ -461,6 +465,7 @@ function genScale(scale: chroma.Scale) {
 						.css()}
 					textAnchor={dd == min ? "start" : dd == max ? "end" : "middle"}
 					style={{ fontFamily: "monospace", fontSize: "smaller" }}
+					key={dd}
 				>
 					{round10(dd, -2)}
 				</text>

@@ -7,7 +7,8 @@ if (process.env.TEST_SRC) {
 	require("mock-require")("..", "../dist/index.umd.min.js")
 }
 
-import chroma, { ColorMode, ColorFormat, InterpolationMode } from ".."
+import * as chroma from ".."
+import { color, ColorFormat, InterpolationMode } from ".."
 import assert from "assert"
 import * as fs from "fs"
 // @ts-ignore
@@ -55,8 +56,8 @@ const ceil10: (num: number, exp: number) => number = decimalAdjust.bind(undefine
 const round = (x: number) => Math.round(x * 1000) / 1000
 
 function assertColorsEqual(actual: chroma.Chromable, expected: chroma.Chromable, message: string = "") {
-	const actualColor = chroma(actual)
-	const expectedColor = chroma(expected)
+	const actualColor = color(actual)
+	const expectedColor = color(expected)
 	// map round to round alpha value
 	const actualRGBA = actualColor.rgba().map(round)
 	const expectedRGBA = expectedColor.rgba().map(round)
@@ -80,25 +81,25 @@ suite("chroma.ts", () => {
 	function testColorConversionForMode(format: ColorFormat) {
 		TEST_COLOR_NAMES.forEach(colorName =>
 			test(`should convert ${colorName} correctly`, () => {
-				const color = chroma(colorName)
-				const colorInFormat = color[format]()!
+				const col = color(colorName)
+				const colorInFormat = col[format]()!
 				const backInRGB = (chroma as any)[format](colorInFormat)
-				assertColorsEqual(backInRGB, color, "colorInFormat: " + colorInFormat)
+				assertColorsEqual(backInRGB, col, "colorInFormat: " + colorInFormat)
 			}),
 		)
 		if ("css" !== format && "gl" !== format && "num" !== format) {
-			const colorInFormat = (chroma("goldenrod")[format]() as number[]).map(x => round10(x, -2))
+			const colorInFormat = (color("goldenrod")[format]() as number[]).map(x => round10(x, -2))
 			const params = [...colorInFormat, 0.42]
 			test(`chroma.${format}(${params.map(v => JSON.stringify(v)).join()}) has correct alpha`, () => {
 				const backInRGBWithAlpha = (chroma as any)[format](...params)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
-			test(`chroma(${params.map(v => JSON.stringify(v)).join()}, "${format}") has correct alpha`, () => {
-				const backInRGBWithAlpha = (chroma as any)(...params, format)
+			test(`color(${params.map(v => JSON.stringify(v)).join()}, "${format}") has correct alpha`, () => {
+				const backInRGBWithAlpha = (color as any)(...params, format)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
-			test(`chroma([${params.map(v => JSON.stringify(v)).join()}], "${format}") has correct alpha`, () => {
-				const backInRGBWithAlpha = (chroma as any)(params, format)
+			test(`color([${params.map(v => JSON.stringify(v)).join()}], "${format}") has correct alpha`, () => {
+				const backInRGBWithAlpha = (color as any)(params, format)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
 		}
@@ -109,8 +110,8 @@ suite("chroma.ts", () => {
 	function testConcrete(format: ColorFormat, roundExps: number | number[], values: { [color: string]: any }) {
 		Object.keys(values).forEach(colorString => {
 			test(`convert from ${colorString}`, () => {
-				const color = chroma(colorString)
-				const colorInFormat = color[format]()
+				const col = color(colorString)
+				const colorInFormat = col[format]()
 				const deepRound = (value: typeof colorInFormat) =>
 					Array.isArray(value)
 						? value.map((x, i) => round10(x, (roundExps as number[])[i]))
@@ -124,10 +125,10 @@ suite("chroma.ts", () => {
 				)
 			})
 			test(`convert to ${colorString}`, () => {
-				const colorInRGB = chroma(values[colorString], format)
-				const color = chroma(colorString)
-				console.log(colorInRGB, color)
-				assertColorsEqual(colorInRGB, color)
+				const colorInRGB = color(values[colorString], format)
+				const col = color(colorString)
+				console.log(colorInRGB, col)
+				assertColorsEqual(colorInRGB, col)
 			})
 		})
 	}
@@ -135,16 +136,16 @@ suite("chroma.ts", () => {
 	suite("Color", () => {
 		suite("alpha", () => {
 			test("alpha() should return the alpha value", () => {
-				assert.equal(chroma("red").alpha(), 1)
+				assert.equal(color("red").alpha(), 1)
 				assert.equal(chroma.rgb(100, 100, 100, 0.5).alpha(), 0.5)
 			})
 			test("alpha(x) should return a new Color w/ alpha = x", () => {
-				const red = chroma("red")
+				const red = color("red")
 				const redAlpha0_5 = red.alpha(0.5)
 				assert.deepEqual(redAlpha0_5.rgba(), [255, 0, 0, 0.5])
 			})
 			test("alpha(x) should not modify the instance", () => {
-				const red = chroma("red")
+				const red = color("red")
 				const redRGBA = red.rgba()
 				red.alpha(0.5)
 				assert.deepEqual(red.rgba(), redRGBA)
@@ -152,7 +153,7 @@ suite("chroma.ts", () => {
 		})
 
 		console.log(chroma)
-		const red = chroma("red")
+		const red = color("red")
 		test("darker", () => assertColorsEqual(red.darker(), "#c20000"))
 		test("darken more", () => assertColorsEqual(red.darker(2), "#890000"))
 		test("darken too much", () => assertColorsEqual(red.darker(10), "#000000"))
@@ -164,7 +165,7 @@ suite("chroma.ts", () => {
 		test("desaturate too much", () => assertColorsEqual(red.desaturate(400), "#7f7f7f"))
 
 		test("premultiplied ", () =>
-			assertColorsEqual(chroma("rgba(32, 48, 96, 0.5)").premultiplied(), [16, 24, 48, 0.5]))
+			assertColorsEqual(color("rgba(32, 48, 96, 0.5)").premultiplied(), [16, 24, 48, 0.5]))
 
 		test("hex", () => assert.equal(chroma.rgb(-1, -1, -1).hex(), "#000000"))
 
@@ -178,10 +179,10 @@ suite("chroma.ts", () => {
 		})
 
 		suite("name", () => {
-			test("red can be named", () => assert.equal(chroma("red").name(), "red"))
-			test("unknown color returns undefined", () => assert.equal(chroma(0x123456).name(), undefined))
+			test("red can be named", () => assert.equal(color("red").name(), "red"))
+			test("unknown color returns undefined", () => assert.equal(color(0x123456).name(), undefined))
 			test("closest color", () => {
-				const red = chroma("red")
+				const red = color("red")
 				const slightlyDarkerRed = red.darker(0.1)
 				assert.equal(slightlyDarkerRed.name(), undefined)
 				assert.equal(slightlyDarkerRed.name(true), "red", "slightlyDarkerRed should still have the name red")
@@ -198,7 +199,7 @@ suite("chroma.ts", () => {
 			assertColorsEqual(color2, chroma.hsl(60, 0.5, 1))
 		})
 
-		test("toSource", () => assert.equal("chroma.rgb(255, 0, 0)", chroma("red").toSource()))
+		test("toSource", () => assert.equal(color("red").toSource(), "chroma.rgb(255, 0, 0)"))
 	})
 
 	suite("average", () => {
@@ -301,7 +302,7 @@ suite("chroma.ts", () => {
 
 			function hasTemp(expected: number, exp = 2) {
 				return function(this: Mocha.Context) {
-					assert.equal(round10(chroma(this.test!.title.split(/\s+/)[0]).temperature(), exp), expected)
+					assert.equal(round10(color(this.test!.title.split(/\s+/)[0]).temperature(), exp), expected)
 				}
 			}
 
@@ -335,13 +336,13 @@ suite("chroma.ts", () => {
 		// examples from https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
 
 		function isInvalid(this: Mocha.Context) {
-			assert.throws(() => chroma(this.test!.title))
+			assert.throws(() => color(this.test!.title))
 		}
 
 		function isColor(...args: any[]) {
-			const color = (chroma as any)(...args)
+			const col = (color as any)(...args)
 			return function(this: Mocha.Context) {
-				assertColorsEqual(chroma(this.test!.title), color)
+				assertColorsEqual(color(this.test!.title), col)
 			}
 		}
 
@@ -430,15 +431,15 @@ suite("chroma.ts", () => {
 	suite("luminance", () => {
 		function hasLuminance(expectedLuminance: number) {
 			return function(this: Mocha.Context) {
-				assert.equal(round10(chroma(this.test!.title).luminance(), -3), round10(expectedLuminance, -3))
+				assert.equal(round10(color(this.test!.title).luminance(), -3), round10(expectedLuminance, -3))
 			}
 		}
 
 		test("black", hasLuminance(0))
 		test("white", hasLuminance(1))
 		test("red", hasLuminance(0.2126))
-		test("yellow brighter than blue", () => assert.ok(chroma("yellow").luminance() > chroma("blue").luminance()))
-		test("green darker than red", () => assert.ok(chroma("green").luminance() < chroma("red").luminance()))
+		test("yellow brighter than blue", () => assert.ok(color("yellow").luminance() > color("blue").luminance()))
+		test("green darker than red", () => assert.ok(color("green").luminance() < color("red").luminance()))
 		test("hsl", () => {
 			console.log()
 			for (let i = 0; i < 100; i += 5) {
@@ -456,7 +457,7 @@ suite("chroma.ts", () => {
 		test("set red luminance to 0.4", () =>
 			assert.equal(
 				round10(
-					chroma("red")
+					color("red")
 						.luminance(0.4)
 						.luminance(),
 					-2,
@@ -464,21 +465,21 @@ suite("chroma.ts", () => {
 				0.4,
 			))
 		test("set red luminance to 0", () => {
-			const redLum0 = chroma("red").luminance(0)
+			const redLum0 = color("red").luminance(0)
 			assert.equal(round10(redLum0.luminance(), -2), 0)
 			assertColorsEqual(redLum0, "#000")
 		})
 		test("set black luminance to 0.5", () => {
-			const blackLumHalf = chroma("black").luminance(0.5)
+			const blackLumHalf = color("black").luminance(0.5)
 			assert.equal(round10(blackLumHalf.luminance(), -2), 0.5)
 			assertColorsEqual(blackLumHalf, "#bcbcbc")
 		})
 		test("setting luminance returns new color", () => {
-			const topic = chroma("red")
+			const topic = color("red")
 			assert.equal(round10(topic.luminance(), -2), 0.21, "red luminance is 0.21")
 			assert.equal(topic.luminance(0.4).hex(), "#ff8686", "set luminance to 0.4")
 			assert.equal(round10(topic.luminance(), -2), 0.21, "old luminance is still 0.21")
-			assertColorsEqual(topic, chroma("red"), "old color is still red")
+			assertColorsEqual(topic, color("red"), "old color is still red")
 		})
 	})
 
@@ -621,19 +622,19 @@ suite("chroma.ts", () => {
 
 	suite("mix", () => {
 		test("hsv interpolation white <-> red", () =>
-			assertColorsEqual(chroma("white").mix("red", 0.5, "hsv"), "#ff8080"))
-		test("use mix as alias", () => assertColorsEqual(chroma("white").mix("red", 0.5, "hsv"), "#ff8080"))
+			assertColorsEqual(color("white").mix("red", 0.5, "hsv"), "#ff8080"))
+		test("use mix as alias", () => assertColorsEqual(color("white").mix("red", 0.5, "hsv"), "#ff8080"))
 		test("alternative mix syntax", () => assertColorsEqual(chroma.mix("red", "blue", 0.25), "#bf0040"))
 		test("hsl interpolation white <-> red", () =>
-			assertColorsEqual(chroma("white").mix("red", 0.5, "hsl"), "#df9f9f"))
+			assertColorsEqual(color("white").mix("red", 0.5, "hsl"), "#df9f9f"))
 		test("rgb interpolation white <-> red", () =>
-			assertColorsEqual(chroma("white").mix("red", 0.5, "rgb"), "#ff8080"))
+			assertColorsEqual(color("white").mix("red", 0.5, "rgb"), "#ff8080"))
 		test("hsv interpolation red <-> white", () =>
-			assertColorsEqual(chroma("red").mix("white", 0.5, "hsv"), "#ff8080"))
+			assertColorsEqual(color("red").mix("white", 0.5, "hsv"), "#ff8080"))
 		test("hsl interpolation red <-> white", () =>
-			assertColorsEqual(chroma("red").mix("white", 0.5, "hsl"), "#df9f9f"))
+			assertColorsEqual(color("red").mix("white", 0.5, "hsl"), "#df9f9f"))
 		test("rgb interpolation red <-> white", () =>
-			assertColorsEqual(chroma("red").mix("white", 0.5, "rgb"), "#ff8080"))
+			assertColorsEqual(color("red").mix("white", 0.5, "rgb"), "#ff8080"))
 		test("interpolation short function", () => {
 			const f = (t: number) => chroma.mix("#ff0000", "#ffffff", t, "hsv")
 			assertColorsEqual(f(0), "#ff0000", "starts at red")
@@ -642,9 +643,9 @@ suite("chroma.ts", () => {
 		})
 
 		//test("num interpolation white <-> red", () =>
-		//	assertColorsEqual(chroma(0xffffff).mix(0xff0000, 0.5, "num"), "#ff7fff"))
+		//	assertColorsEqual(color(0xffffff).mix(0xff0000, 0.5, "num"), "#ff7fff"))
 		//test("num interpolation red <-> white", () =>
-		//	assertColorsEqual(chroma(0xff0000).mix(0xffffff, 0.5, "num"), "#ff7fff"))
+		//	assertColorsEqual(color(0xff0000).mix(0xffffff, 0.5, "num"), "#ff7fff"))
 		//test("interpolation short function w/ num provided", () => {
 		//	const f = (t: number) => chroma.mix(0xff0000, 0xffffff, t, "num")
 		//	assertColorsEqual(f(0), "#ff0000", "starts at red")
@@ -673,7 +674,7 @@ suite("chroma.ts", () => {
 			INTERPOLATION_MODES.forEach(imode =>
 				test(imode, () =>
 					assert.equal(
-						chroma.mix(chroma("red").alpha(0.7), chroma("white").alpha(0.9), 0.5, imode).alpha(),
+						chroma.mix(color("red").alpha(0.7), color("white").alpha(0.9), 0.5, imode).alpha(),
 						0.8,
 					),
 				),
@@ -683,31 +684,31 @@ suite("chroma.ts", () => {
 
 	suite("guess format", () => {
 		test("named colors", () => {
-			assertColorsEqual(chroma("red"), chroma.css("#ff0000"))
+			assertColorsEqual(color("red"), chroma.css("#ff0000"))
 		})
 		test("hex colors w/ 3 digits", () => {
-			assertColorsEqual(chroma("#f00"), chroma.css("#ff0000"))
+			assertColorsEqual(color("#f00"), chroma.css("#ff0000"))
 		})
 		test("hex color  w/ 3 digits, no #", () => {
-			assertColorsEqual(chroma("F00"), chroma.css("#ff0000"))
+			assertColorsEqual(color("F00"), chroma.css("#ff0000"))
 		})
 		test("css color rgb", () => {
-			assertColorsEqual(chroma("rgb(255,0,0)"), chroma.css("#ff0000"))
+			assertColorsEqual(color("rgb(255,0,0)"), chroma.css("#ff0000"))
 		})
 		test("css color rgba", () => {
-			assertColorsEqual(chroma("rgba(128,0,128,0.5)"), chroma.rgb(128, 0, 128, 0.5))
+			assertColorsEqual(color("rgba(128,0,128,0.5)"), chroma.rgb(128, 0, 128, 0.5))
 		})
 		test("css color hsla", () => {
-			assertColorsEqual(chroma("hsla(240,100%,50%,0.5)"), chroma.rgb(0, 0, 255, 0.5))
+			assertColorsEqual(color("hsla(240,100%,50%,0.5)"), chroma.rgb(0, 0, 255, 0.5))
 		})
 		test("rgb color", () => {
-			assertColorsEqual(chroma(255, 0, 0), chroma.rgb(255, 0, 0))
+			assertColorsEqual(color(255, 0, 0), chroma.rgb(255, 0, 0))
 		})
 		test("rgb color array", () => {
-			assertColorsEqual(chroma([255, 0, 0]), chroma.rgb(255, 0, 0))
+			assertColorsEqual(color([255, 0, 0]), chroma.rgb(255, 0, 0))
 		})
 		test("num color", () => {
-			assertColorsEqual(chroma(0xff0000), chroma.rgb(255, 0, 0))
+			assertColorsEqual(color(0xff0000), chroma.rgb(255, 0, 0))
 		})
 	})
 
@@ -954,14 +955,14 @@ suite("chroma.ts", () => {
 	})
 
 	// 	test("ntc2", () => {
-	// 		assert.equal(chroma("red").shade(), "red")
-	// 		console.log(ntc.name(chroma("red").hex()))
+	// 		assert.equal(color("red").shade(), "red")
+	// 		console.log(ntc.name(color("red").hex()))
 	// 		let correct = 0,
 	// 			total = 0
 	// 		//let intstring = ""
 	// 		//for (const c of ntc.names) {
 	// 		//	if ((chroma.w3cx11 as any)[c[1].toLowerCase()] === undefined) {
-	// 		//		const [r, g, b] = chroma(c[0]).rgb()
+	// 		//		const [r, g, b] = color(c[0]).rgb()
 	// 		//		intstring += String.fromCharCode(r, g, b)
 	// 		//	}
 	// 		//}
@@ -981,9 +982,9 @@ suite("chroma.ts", () => {
 	// </style></head><body><div><span></span><span>ntc hue</span><span>color</span><span>my hue</span></div>`
 	// 		for (let i = 0; i < ntc.names.length; i++) {
 	// 			const c = ntc.names[i]
-	// 			if (chroma(c[0]).shade() != c[2].toLowerCase()) {
-	// 				const spans = [[c[2]], [c[0], c[1]], [chroma(c[0]).shade()]].map(([cble, cname]) => {
-	// 					const cc = chroma(cble.toLowerCase())
+	// 			if (color(c[0]).shade() != c[2].toLowerCase()) {
+	// 				const spans = [[c[2]], [c[0], c[1]], [color(c[0]).shade()]].map(([cble, cname]) => {
+	// 					const cc = color(cble.toLowerCase())
 	// 					return `<span style="background-color: ${cc.css()}; color: ${cc.textColor()}"> ${cname ||
 	// 						cc.name()} ${cc.hex()}
 	// <em style="float: right;">LAB ${cc.lab().map(x => round10(x, 0))}</em>
@@ -992,14 +993,14 @@ suite("chroma.ts", () => {
 	// 				})
 	// 				html += `<div><span style="width: 4em; text-align: right;">${i + 1}</span>${spans.join("")}</div>`
 	// 				console.log(c)
-	// 				console.log(chroma(c[0]).hsl())
-	// 				console.log(chroma(c[2].toLowerCase()).css("hsl"))
-	// 				console.log(chroma(c[0]).shade(), chroma(chroma(c[0]).shade()).hsl())
+	// 				console.log(color(c[0]).hsl())
+	// 				console.log(color(c[2].toLowerCase()).css("hsl"))
+	// 				console.log(color(c[0]).shade(), color(color(c[0]).shade()).hsl())
 	// 				console.log()
 	// 				//break
 	// 			}
 	// 			total++
-	// 			correct += +(chroma(c[0]).shade() == c[2].toLowerCase())
+	// 			correct += +(color(c[0]).shade() == c[2].toLowerCase())
 	// 		}
 	// 		html += `</body></html>`
 	// 		fs.writeFileSync("ntc.html", html, "utf8")
