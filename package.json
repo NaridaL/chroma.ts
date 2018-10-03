@@ -3,6 +3,7 @@
 	"version": "1.0.0-beta",
 	"description": "",
 	"main": "dist/index.umd.js",
+	"module": "dist/index.module.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"test": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha --ui tdd --require ts-node/register test/**/*.test.ts",
