@@ -606,4 +606,8 @@ _example_ `[r = '#e0e0ee', s = '#e0eee0', chroma.deltaE(r, s)]` \[<img align="to
 License
 -------
 
-...
+The original chroma-js library is released under [the BSD license](LICENSE.chroma-js.txt).
+
+The included brewer colors are released under [the Apache 2.0 license](LICENSE.colorbrewer.txt).
+
+chroma.ts modifications are also released under [the BSD license](LICENSE.txt).

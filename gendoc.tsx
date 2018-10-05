@@ -111,7 +111,16 @@ chroma.css('powderblue') // create a color
 			<h2>API</h2>
 			{docJson.children[0].children.map(x => render(x, ""))}
 			<h2>License</h2>
-			...
+			<p>
+				The original chroma-js library is released under <a href="LICENSE.chroma-js.txt">the BSD license</a>.
+			</p>
+			<p>
+				The included brewer colors are released under{" "}
+				<a href="LICENSE.colorbrewer.txt">the Apache 2.0 license</a>.
+			</p>
+			<p>
+				chroma.ts modifications are also released under <a href="LICENSE.txt">the BSD license</a>.
+			</p>
 		</>
 	)
 }
