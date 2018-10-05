@@ -17,8 +17,8 @@
 		"preversion": "npm run test:ci",
 		"lint": "tslint --project .",
 		"prettier": "prettier --list-different --write src/**/*.ts test/**/*.ts",
-		"docs": "ts-node --transpileOnly  ./gendoc.tsx",
-		"docs:watch": "nodemon -w ./gendoc.tsx -w ./src/index.ts -x ts-node --transpileOnly  ./gendoc.tsx"
+		"docs": "ts-node --transpileOnly ./gendoc.tsx",
+		"docs:watch": "nodemon -w ./gendoc.tsx -w ./src/index.ts -x ts-node --transpileOnly ./gendoc.tsx"
 	},
 	"prettier": {
 		"useTabs": true,

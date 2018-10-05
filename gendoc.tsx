@@ -12,7 +12,7 @@ import * as React from "react"
 import { ReactNode, ReactElement } from "react"
 import * as fs from "fs"
 import { removeJSComments, lerp, lerpInv, round10 } from "ts3dutils"
-import { tmpNameSync } from "tmp"
+import { tmpNameSync, file } from "tmp"
 import { execSync } from "child_process"
 import filesize from "filesize"
 import { gzip, gzipSync } from "zlib"
@@ -97,10 +97,10 @@ function DocPage({ docJson }: { docJson: typeof docjson }) {
 			<h2>Usage</h2>
 			<pre>
 				<code className="language-ts">{`// in TypeScript / using ES modules
-import chroma from 'chroma.ts'
+import * as chroma from 'chroma.ts'
 
 // commonjs
-const chroma = require('chroma.ts').default
+const chroma = require('chroma.ts')
 
 chroma.css('powderblue') // create a color
     .darker(2) // transform it
@@ -195,7 +195,7 @@ function Comment(props: { of: any }) {
 															<img
 																align="top"
 																src={genColorIcon(
-																	chroma(v),
+																	chroma.color(v),
 																	true,
 																	v instanceof chroma.Color
 																		? undefined
@@ -235,7 +235,6 @@ function Class({
 }: {
 	of: DeclarationReflection
 }) {
-	console.log(name)
 	return (
 		<>
 			<h3>
@@ -252,7 +251,6 @@ function Class({
 	)
 }
 function Objectliteral({ name, kindString, comment, children }: any) {
-	console.log(name)
 	return (
 		<>
 			<h3>
@@ -476,9 +474,9 @@ function genScale(scale: chroma.Scale) {
 
 function genSVG(name: string, svg: ReactElement<any>) {
 	const imgContent = ReactDOMServer.renderToStaticMarkup(svg)
-	const fileName = "./readme_img/" + name + ".svg"
-	fs.writeFileSync(fileName, imgContent, "utf8")
-	return fileName
+	const fileName = "/readme_img/" + name + ".svg"
+	fs.writeFileSync("." + fileName, imgContent, "utf8")
+	return "https://raw.githubusercontent.com/NaridaL/chroma.ts/master" + fileName + "?sanitize=true"
 	// return svgToDataURL(imgContent)
 }
 

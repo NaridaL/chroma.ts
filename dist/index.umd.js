@@ -1034,7 +1034,6 @@
 	    for (const c of colors) {
 	        const xyz2 = c[mode]();
 	        alphaSum += c.alpha();
-	        console.log(alphaSum);
 	        for (let i = 0; i < xyz.length; i++) {
 	            if (mode.charAt(i) == "h") {
 	                const A = xyz2[i] * DEG2RAD;
