@@ -2173,7 +2173,7 @@ const CSS_HSL_WS_REGEX = new RegExp(
 	"i",
 )
 function css2rgb(css: string): RGBA {
-	if (w3cx11 && (w3cx11 as any)[css.toLowerCase()]) {
+	if (w3cx11 && w3cx11.hasOwnProperty(css)) {
 		return num2rgb((w3cx11 as any)[css.toLowerCase()])
 	}
 	let m

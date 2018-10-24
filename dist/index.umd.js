@@ -1710,7 +1710,7 @@
 	const CSS_HSL_REGEX = new RegExp(["^hsla?\\(", FLOAT + "(deg|rad|turn)?", ",", FLOAT + "%", ",", FLOAT + "%", "(?:,", FLOAT + "(%)?", ")?\\)$"].join(WS), "i");
 	const CSS_HSL_WS_REGEX = new RegExp(["^hsla?\\(", FLOAT + "(deg|rad|turn)?\\s+" + FLOAT + "%", FLOAT + "%", "(?:/", FLOAT + "(%)?", ")?\\)$"].join(WS), "i");
 	function css2rgb(css) {
-	    if (w3cx11 && w3cx11[css.toLowerCase()]) {
+	    if (w3cx11 && w3cx11.hasOwnProperty(css)) {
 	        return num2rgb(w3cx11[css.toLowerCase()]);
 	    }
 	    let m;
