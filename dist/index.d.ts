@@ -496,11 +496,16 @@ export declare class CubeHelix {
     private _gamma;
     private _hue;
     private _lightness;
-    start(s: number): number | this;
-    rotations(r: number): number | this;
-    gamma(g: number): number | this;
-    hue(h: number | [number, number]): [number, number] | this;
-    lightness(h: number | [number, number]): [number, number] | this;
+    start(): number;
+    start(s: number): this;
+    rotations(): number;
+    rotations(r: number): this;
+    gamma(): number;
+    gamma(g: number): this;
+    hue(): [number, number];
+    hue(h: number | [number, number]): this;
+    lightness(): [number, number];
+    lightness(h: number | [number, number]): this;
     /**
      * Convert to a [[Scale]].
      *

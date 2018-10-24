@@ -952,35 +952,50 @@ export class CubeHelix {
 	private _gamma!: number
 	private _hue!: [number, number]
 	private _lightness!: [number, number]
-	public start(s: number) {
+
+	public start(): number
+	public start(s: number): this
+	public start(s?: number) {
 		if (undefined === s) {
 			return this._start
 		}
 		this._start = s
 		return this
 	}
-	public rotations(r: number) {
+
+	public rotations(): number
+	public rotations(r: number): this
+	public rotations(r?: number) {
 		if (undefined === r) {
 			return this._rotations
 		}
 		this._rotations = r
 		return this
 	}
-	public gamma(g: number) {
+
+	public gamma(): number
+	public gamma(g: number): this
+	public gamma(g?: number) {
 		if (undefined === g) {
 			return this._gamma
 		}
 		this._gamma = g
 		return this
 	}
-	public hue(h: number | [number, number]) {
+
+	public hue(): [number, number]
+	public hue(h: number | [number, number]): this
+	public hue(h?: number | [number, number]) {
 		if (undefined === h) {
 			return this._hue
 		}
 		this._hue = Array.isArray(h) ? h : [h, h]
 		return this
 	}
-	public lightness(h: number | [number, number]) {
+
+	public lightness(): [number, number]
+	public lightness(h: number | [number, number]): this
+	public lightness(h?: number | [number, number]) {
 		if (undefined === h) {
 			return this._lightness
 		}
