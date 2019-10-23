@@ -116,8 +116,8 @@ suite("chroma.ts", () => {
 					Array.isArray(value)
 						? value.map((x, i) => round10(x, (roundExps as number[])[i]))
 						: "number" == typeof value
-							? round10(value, roundExps as number)
-							: value
+						? round10(value, roundExps as number)
+						: value
 				assert.deepEqual(
 					deepRound(colorInFormat),
 					deepRound(values[colorString]),

@@ -11,7 +11,7 @@ TypeScript rewrite of [chroma-js](https://github.com/gka/chroma.js). Includes:
 *   No more `NaN` values.
 *   Exceptions on invalid inputs.
 *   Better inline documentation.
-*   Smaller (10.41 KB gzipped).
+*   Smaller (11.31 KB gzipped).
 
 Installation
 ------------
@@ -93,13 +93,13 @@ Returns the HSL representation of this color. hue will always be in \[0;360). Va
 
 _example_ `chroma.color('purple').hsl()` \[300, 1, ~0.25\]  
 
-### `color.hsv`(): Object <sub><a href="src/index.ts#L257">src</a></sub>
+### `color.hsv`(): \[number, number, number\] <sub><a href="src/index.ts#L257">src</a></sub>
 
 Returns the HSL representation of this color. hue will always be in \[0;360). Values are never NaN.
 
 _example_ `chroma.color('purple').hsv()` \[300, 1, ~0.5\]  
 
-### `color.hcg`(): Object <sub><a href="src/index.ts#L267">src</a></sub>
+### `color.hcg`(): \[number, number, number\] <sub><a href="src/index.ts#L267">src</a></sub>
 
 Returns the HSL representation of this color. hue will always be in \[0;360). Values are never NaN.
 
@@ -123,7 +123,7 @@ _example_ `chroma.color('#ff0000').name()` `"red"`
 _example_ `chroma.color('#ff0001').name()`  
 _example_ `chroma.color('#ff0001').name(true)` `"red"`  
 
-### `color.cmyk`(): Object <sub><a href="src/index.ts#L321">src</a></sub>
+### `color.cmyk`(): \[number, number, number, number\] <sub><a href="src/index.ts#L321">src</a></sub>
 
 Get the [CMYK](#CMYK) representation of this color.
 
@@ -227,13 +227,13 @@ Equivalent to `saturate(-amount)`.
 
 ### `color.premultiplied`(): [Color](#Color) <sub><a href="src/index.ts#L480">src</a></sub>
 
-### `color.hsi`(): Object <sub><a href="src/index.ts#L490">src</a></sub>
+### `color.hsi`(): \[number, number, number\] <sub><a href="src/index.ts#L490">src</a></sub>
 
 Returns the HSI representation of this color. hue will always be in \[0; 360). Values are never NaN.
 
 _example_ `chroma.color('purple').hsi()` \[300, 1, ~0.33\]  
 
-### `color.lab`(): Object <sub><a href="src/index.ts#L500">src</a></sub>
+### `color.lab`(): \[number, number, number\] <sub><a href="src/index.ts#L500">src</a></sub>
 
 Returns the LAB representation of this color.
 
@@ -249,13 +249,13 @@ _example_ `chroma.color('yellow').alpha(0.7).hex()` `"#ffff00"`
 _example_ `chroma.color('yellow').alpha(0.7).hex('rgba')` `"#ffff00b3"`  
 _example_ `chroma.color('yellow').alpha(0.7).hex('argb')` `"#b3ffff00"`  
 
-### `color.lch`(): Object <sub><a href="src/index.ts#L524">src</a></sub>
+### `color.lch`(): \[number, number, number\] <sub><a href="src/index.ts#L524">src</a></sub>
 
 Returns the LCH representation of this color. hue will always be in \[0; 360). Values are never NaN.
 
 _example_ `chroma.color('purple').lch()` \[~29.78, ~69.31, ~328.23\]  
 
-### `color.xyz`(): Object <sub><a href="src/index.ts#L534">src</a></sub>
+### `color.xyz`(): \[number, number, number\] <sub><a href="src/index.ts#L534">src</a></sub>
 
 Returns the XYZ representation of this color. hue will always be in \[0; 360). Values are never NaN.
 

@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.chroma = {})));
+	(global = global || self, factory(global.chroma = {}));
 }(this, (function (exports) { 'use strict';
 
 	/**
@@ -1862,45 +1862,15 @@
 	        console.log("0 < t < 20");
 	        // calc from green
 	        return round(newtonIterate1d(t => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)), 15, 4) * 100);
-	        return (Math.E ** ((g255 + 155.25485562709179 + 0.44596950469579133 * (15 - 2)) / 104.49216199393888) + 2) * 100;
 	    }
 	    else if (b255 - r255 < 0) {
 	        console.log("20 < t < 66");
 	        return round(newtonIterate1d(t => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)), 43, 4) * 100);
-	        return ((Math.E ** ((b255 + 254.76935184120902 - 0.8274096064007395 * (43 - 10)) / 115.67994401066147) + 10) * 100);
 	    }
 	    else {
 	        console.log("0 < t < 400, start= " + (-1.4 * (r255 + g255) + 755));
 	        return round(newtonIterate1d(t => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)), -1.4 * (r255 + g255) + 755, 8) * 100);
-	        return ((r255 / 329.698727446) ** (1 / -0.1332047592) + 60) * 100;
 	    }
-	    return newtonIterate1d(k => {
-	        const eps = 1e-9;
-	        const [kr, kg, kb] = kelvin2rgb(k);
-	        const [kr2, kg2, kb2] = kelvin2rgb(k + eps);
-	        const dkr = (kr2 - kr) / eps, dkg = (kg2 - kg) / eps, dkb = (kb2 - kb) / eps;
-	        return dkr * (kr - r255) + dkg * (kg - g255) + dkb * (kb - b255);
-	        return kb / kr - b255 / r255;
-	    }, 
-	    //1000,
-	    //40000,
-	    Math.E ** ((b255 / r255 + 2.5) / 0.4), 20);
-	    let maxTemp = 40000;
-	    let minTemp = 1000;
-	    const eps = 0.4;
-	    let temp = 0;
-	    let rgb;
-	    while (maxTemp - minTemp > eps) {
-	        temp = (maxTemp + minTemp) * 0.5;
-	        rgb = kelvin2rgb(temp);
-	        if (rgb[2] / rgb[0] >= b255 / r255) {
-	            maxTemp = temp;
-	        }
-	        else {
-	            minTemp = temp;
-	        }
-	    }
-	    return round(temp);
 	}
 	_input.temperature = _input.kelvin = _input.K = kelvin2rgb;
 	function blend_f(f) {
@@ -2168,39 +2138,39 @@
 	    return arr[indexOfMax(arr, f)];
 	}
 
-	exports.color = color;
 	exports.Color = Color;
-	exports.black = black;
-	exports.white = white;
-	exports.brewer = brewer;
-	exports.w3cx11 = w3cx11;
-	exports.cubehelix = cubehelix;
 	exports.CubeHelix = CubeHelix;
-	exports.random = random;
-	exports.mix = mix;
-	exports.css = css;
+	exports.Scale = Scale;
+	exports.analyze = analyze;
+	exports.average = average;
+	exports.bezier = bezier;
+	exports.black = black;
+	exports.blend = blend;
+	exports.brewer = brewer;
 	exports.cmyk = cmyk;
+	exports.color = color;
+	exports.contrast = contrast;
+	exports.css = css;
+	exports.cubehelix = cubehelix;
+	exports.deltaE = deltaE;
+	exports.distance = distance;
 	exports.gl = gl;
 	exports.hcg = hcg;
-	exports.lch = lch;
 	exports.hsi = hsi;
 	exports.hsl = hsl;
 	exports.hsv = hsv;
 	exports.kelvin = kelvin;
 	exports.lab = lab;
-	exports.num = num;
-	exports.rgb = rgb;
-	exports.xyz = xyz;
-	exports.average = average;
-	exports.bezier = bezier;
-	exports.blend = blend;
-	exports.scale = scale;
-	exports.Scale = Scale;
-	exports.contrast = contrast;
-	exports.distance = distance;
-	exports.deltaE = deltaE;
-	exports.analyze = analyze;
+	exports.lch = lch;
 	exports.limits = limits;
+	exports.mix = mix;
+	exports.num = num;
+	exports.random = random;
+	exports.rgb = rgb;
+	exports.scale = scale;
+	exports.w3cx11 = w3cx11;
+	exports.white = white;
+	exports.xyz = xyz;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

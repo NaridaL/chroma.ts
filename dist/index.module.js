@@ -1857,45 +1857,15 @@ function rgb2kelvin(r255, g255, b255) {
         console.log("0 < t < 20");
         // calc from green
         return round(newtonIterate1d(t => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)), 15, 4) * 100);
-        return (Math.E ** ((g255 + 155.25485562709179 + 0.44596950469579133 * (15 - 2)) / 104.49216199393888) + 2) * 100;
     }
     else if (b255 - r255 < 0) {
         console.log("20 < t < 66");
         return round(newtonIterate1d(t => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)), 43, 4) * 100);
-        return ((Math.E ** ((b255 + 254.76935184120902 - 0.8274096064007395 * (43 - 10)) / 115.67994401066147) + 10) * 100);
     }
     else {
         console.log("0 < t < 400, start= " + (-1.4 * (r255 + g255) + 755));
         return round(newtonIterate1d(t => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)), -1.4 * (r255 + g255) + 755, 8) * 100);
-        return ((r255 / 329.698727446) ** (1 / -0.1332047592) + 60) * 100;
     }
-    return newtonIterate1d(k => {
-        const eps = 1e-9;
-        const [kr, kg, kb] = kelvin2rgb(k);
-        const [kr2, kg2, kb2] = kelvin2rgb(k + eps);
-        const dkr = (kr2 - kr) / eps, dkg = (kg2 - kg) / eps, dkb = (kb2 - kb) / eps;
-        return dkr * (kr - r255) + dkg * (kg - g255) + dkb * (kb - b255);
-        return kb / kr - b255 / r255;
-    }, 
-    //1000,
-    //40000,
-    Math.E ** ((b255 / r255 + 2.5) / 0.4), 20);
-    let maxTemp = 40000;
-    let minTemp = 1000;
-    const eps = 0.4;
-    let temp = 0;
-    let rgb;
-    while (maxTemp - minTemp > eps) {
-        temp = (maxTemp + minTemp) * 0.5;
-        rgb = kelvin2rgb(temp);
-        if (rgb[2] / rgb[0] >= b255 / r255) {
-            maxTemp = temp;
-        }
-        else {
-            minTemp = temp;
-        }
-    }
-    return round(temp);
 }
 _input.temperature = _input.kelvin = _input.K = kelvin2rgb;
 function blend_f(f) {
@@ -2163,5 +2133,5 @@ function withMax(arr, f) {
     return arr[indexOfMax(arr, f)];
 }
 
-export { color, Color, black, white, brewer, w3cx11, cubehelix, CubeHelix, random, mix, css, cmyk, gl, hcg, lch, hsi, hsl, hsv, kelvin, lab, num, rgb, xyz, average, bezier, blend, scale, Scale, scales, contrast, distance, deltaE, analyze, limits };
+export { Color, CubeHelix, Scale, analyze, average, bezier, black, blend, brewer, cmyk, color, contrast, css, cubehelix, deltaE, distance, gl, hcg, hsi, hsl, hsv, kelvin, lab, lch, limits, mix, num, random, rgb, scale, scales, w3cx11, white, xyz };
 //# sourceMappingURL=index.module.js.map

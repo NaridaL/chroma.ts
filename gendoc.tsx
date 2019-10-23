@@ -328,6 +328,7 @@ function Parameters({ of }: { of: ParameterReflection[] }): React.ReactNode {
 }
 
 function TypeParameters({ of: typeParameters }: { of: TypeParameterReflection[] }) {
+	// tslint:disable-next-line:no-null-keyword react requires null return value
 	if (!typeParameters) return null
 	const uniqueTPs: TypeParameterReflection[] = []
 	for (const tp of typeParameters) {
@@ -489,7 +490,7 @@ function genSVG(name: string, svg: ReactElement<any>) {
 	// return svgToDataURL(imgContent)
 }
 
-const X: { [key: string]: React.ComponentType<any> } = {
+const X: { []: React.ComponentType<any> } = {
 	Comment,
 	Typealias,
 	Class,
