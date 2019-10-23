@@ -1,13 +1,11 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "module": "commonjs"
-    /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */,
-    "noUnusedLocals": false,
-    "allowSyntheticDefaultImports": true,
-    "rootDir": "."
-  },
-  "include": [
-    "./*.ts"
-  ]
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"module": "commonjs",
+		/* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */ "noUnusedLocals": false,
+		"allowSyntheticDefaultImports": true,
+		"strict": true,
+		"rootDir": "."
+	},
+	"include": ["./*.ts"]
 }

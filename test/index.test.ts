@@ -12,7 +12,7 @@ import { color, ColorFormat, InterpolationMode } from ".."
 import assert from "assert"
 import * as fs from "fs"
 // @ts-ignore
-import ntc = require("../ntc2")
+import * as ntc from "../ntc2"
 
 const TEST_COLOR_NAMES = ["black", "white", "red", "green", "blue", "magenta", "cyan", "yellow", "orange", "purple"]
 const INTERPOLATION_MODES: InterpolationMode[] = ["rgb", "lab", "hsv", "hsi", "hcg", "hsl", "lch", "xyz", "lrgb", "num"]
@@ -883,6 +883,16 @@ suite("chroma.ts", () => {
 			test("returns original colors", () => {
 				const f = chroma.scale(["red", "white", "blue"])
 				assert.deepEqual(f.colors(), ["#ff0000", "#ffffff", "#0000ff"], "same colors")
+			})
+			test("returns correct type", () => {
+				const colors: string[] = chroma.scale("red", "white").colors(3)
+				assertColorsEqual(colors[0], "red")
+
+				const colors2: string[] = chroma.scale("red", "white").colors(3, undefined)
+				assertColorsEqual(colors2[0], "red")
+
+				const colors3: chroma.Color[] = chroma.scale("red", "white").colors(3, "color")
+				assertColorsEqual(colors3[0].css(), "red")
 			})
 			test("num = 1", () => {
 				const f = chroma.scale("BuPu")

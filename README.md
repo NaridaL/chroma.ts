@@ -11,7 +11,7 @@ TypeScript rewrite of [chroma-js](https://github.com/gka/chroma.js). Includes:
 *   No more `NaN` values.
 *   Exceptions on invalid inputs.
 *   Better inline documentation.
-*   Smaller (11.31 KB gzipped).
+*   Smaller (11.23 KB gzipped).
 
 Installation
 ------------
@@ -543,26 +543,26 @@ _example_ `chroma.scale("red", "white").padding(0.2)` [<img align="right" src="h
 _example_ `chroma.scale("red", "white").padding(0.1)(0)` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/ff1515ff.svg?sanitize=true">  
 _example_ `chroma.scale("red", "white").padding(-0.1)(0)` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/ff0000ff.svg?sanitize=true">  
 
-### `scale.colors`(_numColors_?: undefined | number, _format_: [ColorFormat](#ColorFormat) | false = "hex"): T\[\] <sub><a href="src/index.ts#L1549">src</a></sub>
+### `scale.colors`&lt;M&gt;(_numColors_?: undefined | number, _format_: M = "hex" as any): [Array](#Array) <sub><a href="src/index.ts#L1549">src</a></sub>
 
 Get a number of equidistant colors.
 
 _example_ `chroma.scale('OrRd').colors(5)` \[<img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/fff7ecff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/fdd49eff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/fc8d59ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/d7301fff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/7f0000ff_small_name.svg?sanitize=true">\]  
 _example_ `chroma.scale(['white', 'black']).colors(12)` \[<img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/ffffffff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/e8e8e8ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/d1d1d1ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/b9b9b9ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/a2a2a2ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/8b8b8bff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/747474ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/5d5d5dff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/464646ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/2e2e2eff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/171717ff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/000000ff_small_name.svg?sanitize=true">\]  
 
-### `scale.cache`(): boolean <sub><a href="src/index.ts#L1579">src</a></sub>
+### `scale.cache`(): boolean <sub><a href="src/index.ts#L1582">src</a></sub>
 
 Get whether the cache is enabled. Defaults to true.
 
-### `scale.cache`(_enableCache_: boolean): this <sub><a href="src/index.ts#L1584">src</a></sub>
+### `scale.cache`(_enableCache_: boolean): this <sub><a href="src/index.ts#L1587">src</a></sub>
 
 Enable or disable the cache.
 
-### `scale.gamma`(): number <sub><a href="src/index.ts#L1596">src</a></sub>
+### `scale.gamma`(): number <sub><a href="src/index.ts#L1599">src</a></sub>
 
 Get the current gamma value. Defaults to 1.
 
-### `scale.gamma`(_gamma_: number): this <sub><a href="src/index.ts#L1604">src</a></sub>
+### `scale.gamma`(_gamma_: number): this <sub><a href="src/index.ts#L1607">src</a></sub>
 
 Set the gamma value. Gamma-correction can be used to "shift" a scale's center more the the beginning (gamma < 1) or end (gamma > 1), typically used to "even" the lightness gradient. Default is 1.
 
@@ -572,19 +572,19 @@ _example_ `chroma.scale('YlGn').gamma(2)` [<img align="right" src="https://raw.g
 
 ### _namespace_ `scales`
 
-### `scales.cool`(): [Scale](#Scale) <sub><a href="src/index.ts#L1714">src</a></sub>
+### `scales.cool`(): [Scale](#Scale) <sub><a href="src/index.ts#L1717">src</a></sub>
 
 _example_ `chroma.scales.cool()` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale22.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.scales.cool()%0A-ccffffcafdfec9fafdc7f8fdc6f6fcc4f4fbc3f1fac1eff9c0edf8beebf8bde8f7bbe6f6bae4f5b8e2f4b7dff3b5ddf3b4dbf2b2d9f1b1d6f0afd4efaed2eeaccfeeabcdeda9cbeca8c9eba6c6eaa5c4e9a3c2e9a2c0e8a0bde79fbbe69db9e59cb7e49ab4e498b2e397b0e295aee194abe092a9e091a7df8fa4de8ea2dd8ca0dc8b9edb899bdb8899da8697d98595d88392d78290d6808ed67f8cd57d89d47c87d37a85d27983d17780d1767ed0747ccf737ace7177cd7075cc6e73cc6d70cb6b6eca6a6cc9686ac86667c86565c76363c66261c5605ec45f5cc35d5ac35c58c25a55c15953c05751bf564fbe544cbe534abd5148bc5045bb4e43ba4d41b94b3fb94a3cb8483ab74738b64536b54433b44231b4412fb33f2db23e2ab13c28b03b26af3924af3821ae361fad)  
 
-### `scales.hot`(): [Scale](#Scale) <sub><a href="src/index.ts#L1721">src</a></sub>
+### `scales.hot`(): [Scale](#Scale) <sub><a href="src/index.ts#L1724">src</a></sub>
 
 _example_ `chroma.scales.hot()` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale23.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.scales.hot()%0A-0000000800000f00001700001f00002700002e00003600003e00004600004d00005500005d00006400006c00007400007c00008300008b00009300009b0000a20000aa0000b20000b90000c10000c90000d10000d80000e00000e80000f00000f70000ff0000ff0800ff0f00ff1700ff1f00ff2700ff2e00ff3600ff3e00ff4600ff4d00ff5500ff5d00ff6400ff6c00ff7400ff7c00ff8300ff8b00ff9300ff9b00ffa200ffaa00ffb200ffb900ffc100ffc900ffd100ffd800ffe000ffe800fff000fff700ffff00ffff08ffff0fffff17ffff1fffff27ffff2effff36ffff3effff46ffff4dffff55ffff5dffff64ffff6cffff74ffff7cffff83ffff8bffff93ffff9bffffa2ffffaaffffb2ffffb9ffffc1ffffc9ffffd1ffffd8ffffe0ffffe8fffff0fffff7ffffff)  
 
-### `.contrast`(_a_: [Chromable](#Chromable), _b_: [Chromable](#Chromable)): number <sub><a href="src/index.ts#L1734">src</a></sub>
+### `.contrast`(_a_: [Chromable](#Chromable), _b_: [Chromable](#Chromable)): number <sub><a href="src/index.ts#L1737">src</a></sub>
 
 Computes the WCAG contrast ratio between two colors. A minimum contrast of 4.5:1 [is recommended](http://www.w3.org/TR/WCAG20-TECHS/G18.html) to ensure that text is still readable against a background color.
 
-### `.distance`(_a_: [Chromable](#Chromable), _b_: [Chromable](#Chromable), _mode_: [ColorMode](#ColorMode) = "lab"): number <sub><a href="src/index.ts#L1755">src</a></sub>
+### `.distance`(_a_: [Chromable](#Chromable), _b_: [Chromable](#Chromable), _mode_: [ColorMode](#ColorMode) = "lab"): number <sub><a href="src/index.ts#L1758">src</a></sub>
 
 Compute the [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance#Three_dimensions) between two colors in a given color space.
 
@@ -593,7 +593,7 @@ _example_ `chroma.distance('#fff', '#f0f', 'rgb')` `255`
 _example_ `chroma.distance('#fff', '#ff0')` `~96.95`  
 _example_ `chroma.distance('#fff', '#f0f')` `~122.16`  
 
-### `.deltaE`(_reference_: [Chromable](#Chromable), _sample_: [Chromable](#Chromable), _L_: number = 1, _C_: number = 1): number <sub><a href="src/index.ts#L1776">src</a></sub>
+### `.deltaE`(_reference_: [Chromable](#Chromable), _sample_: [Chromable](#Chromable), _L_: number = 1, _C_: number = 1): number <sub><a href="src/index.ts#L1779">src</a></sub>
 
 Computes color difference as developed by the Colour Measurement Committee of the Society of Dyers and Colourists (CMC) in 1984. The implementation is adapted from Bruce Lindbloom. The parameters L and C are weighting factors for lightness and chromaticity.
 
@@ -603,9 +603,9 @@ _example_ `[r = '#e9e9ee', s = '#e9eee9', chroma.deltaE(r, s)]` \[<img align="to
 _example_ `[r = '#e4e4ee', s = '#e4eee4', chroma.deltaE(r, s)]` \[<img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/e4e4eeff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/e4eee4ff_small_name.svg?sanitize=true">, ~14.84\]  
 _example_ `[r = '#e0e0ee', s = '#e0eee0', chroma.deltaE(r, s)]` \[<img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/e0e0eeff_small_name.svg?sanitize=true">, <img align="top" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/e0eee0ff_small_name.svg?sanitize=true">, ~21.32\]  
 
-### `.analyze`(_data_: number\[\]): [DataInfo](#DataInfo) <sub><a href="src/index.ts#L1810">src</a></sub>
+### `.analyze`(_data_: number\[\]): [DataInfo](#DataInfo) <sub><a href="src/index.ts#L1813">src</a></sub>
 
-### `.limits`(_data_: number\[\] | [DataInfo](#DataInfo), _mode_: [LimitsMode](#LimitsMode) = "e", _num_: number = 7): number\[\] <sub><a href="src/index.ts#L1836">src</a></sub>
+### `.limits`(_data_: number\[\] | [DataInfo](#DataInfo), _mode_: [LimitsMode](#LimitsMode) = "e", _num_: number = 7): number\[\] <sub><a href="src/index.ts#L1839">src</a></sub>
 
 ### _type_ `ColorMode` = `"rgb"` | `"cmyk"` | `"lab"` | `"hsv"` | `"hsi"` | `"hcg"` | `"hsl"` | `"gl"` | `"lch"` | `"xyz"`
 

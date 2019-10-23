@@ -37,7 +37,7 @@ function config(format /* : "umd" | "es" */, compress /*: boolean */) {
 					},
 					toplevel: true,
 					mangle: {
-						// properties: { regex: /^_/ },
+						properties: { regex: /^_/ },
 					},
 					// output: {
 					// 	beautify: true,

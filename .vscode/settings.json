@@ -15,5 +15,6 @@
 	"mocha.options": {
 		"ui": "tdd",
 		"compilers": "ts:ts-node/register"
-	}
+	},
+	"editor.formatOnSave": true
 }

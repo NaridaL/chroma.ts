@@ -1539,14 +1539,17 @@ export class Scale<T = Color> {
 	/**
 	 * Get a number of equidistant colors.
 	 * @param numColors The number of colors to return.
-	 * @param format Output format. Defaults to `"hex"`. Pass `false` to get {@link Color} objects.
+	 * @param format Output format. Defaults to `"hex"`. Pass `"color"` to get {@link Color} objects.
 	 * @returns If `numColors` is `undefined`, the colors which define this [Scale]. If `numColors` is 1,
 	 * `[this((min + max) / 2)]`. Otherwise, an array where the first element is `this(min)`, the last one is
 	 * `this(max)` and the rest are equidistant samples between min and max.
 	 * @example chroma.scale('OrRd').colors(5)
 	 * @example chroma.scale(['white', 'black']).colors(12)
 	 */
-	public colors(numColors?: number, format: ColorFormat | false = "hex"): T[] {
+	public colors<M extends ColorFormat | "color" | undefined = "hex">(
+		numColors?: number,
+		format: M = "hex" as any,
+	): Array<M extends ColorFormat ? ReturnType<Color[M]> : M extends "color" ? Color : string> {
 		let result: Color[]
 		if (undefined === numColors) {
 			result = (this._colors as Color[]).slice()
@@ -1570,7 +1573,7 @@ export class Scale<T = Color> {
 			result = samples.map(s => this._color(s))
 		}
 
-		return (format ? result.map(c => c[format]()) : result) as any
+		return (format != "color" ? result.map(c => c[format as "hex"]()) : result) as any
 	}
 
 	/**
