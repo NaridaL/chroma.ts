@@ -1,6 +1,6 @@
 {
 	"name": "chroma.ts",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "",
 	"main": "dist/index.umd.js",
 	"module": "dist/index.module.js",
