@@ -339,7 +339,10 @@ function TypeParameters({ of: typeParameters }: { of: TypeParameterReflection[] 
 	return (
 		<>
 			{"&lt;"}
-			{reactJoin(uniqueTPs.map(tp => tp.name), ", ")}
+			{reactJoin(
+				uniqueTPs.map(tp => tp.name),
+				", ",
+			)}
 			{"&gt;"}
 		</>
 	)
@@ -504,4 +507,5 @@ const mdFileName = "README.md"
 const prevReadme = fs.readFileSync(mdFileName, "utf8")
 fs.writeFileSync(mdFileName, md, "utf8")
 fs.writeFileSync("out/README.html", html, "utf8")
+prevReadme != md && console.error("Content of Readme changed!")
 process.exit(prevReadme == md ? 0 : 1)

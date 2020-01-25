@@ -405,7 +405,7 @@ export class Color {
 	 */
 	public clipped() {
 		const { r, g, b } = this
-		return !(0 <= r && r <= 255 && (0 <= g && g <= 255) && (0 <= b && b <= 255))
+		return !(0 <= r && r <= 255 && 0 <= g && g <= 255 && 0 <= b && b <= 255)
 	}
 
 	/**

@@ -89,13 +89,13 @@ export declare class Color {
      *
      * @example chroma.color('purple').hsv()
      */
-    hsv(): [number, number, number];
+    hsv(): HSV;
     /**
      * Returns the [HSL] representation of this color. hue will always be in [0;360). Values are never NaN.
      *
      * @example chroma.color('purple').hcg()
      */
-    hcg(): [number, number, number];
+    hcg(): HCG;
     /**
      * Returns a CSS `rgb(...)` or `hsl(...)` string representation that can be used as CSS-color definition. The alpha
      * value is not output if it 1.
@@ -122,7 +122,7 @@ export declare class Color {
      *
      * @example chroma.color('red').cmyk()
      */
-    cmyk(): [number, number, number, number];
+    cmyk(): CMYK;
     /**
      * Returns the [GL] representation of this color.
      * @example chroma.color('33cc00').gl()
@@ -222,13 +222,13 @@ export declare class Color {
      *
      * @example chroma.color('purple').hsi()
      */
-    hsi(): [number, number, number];
+    hsi(): HSI;
     /**
      * Returns the [LAB] representation of this color.
      *
      * @example chroma.color('purple').lab()
      */
-    lab(): [number, number, number];
+    lab(): RGB;
     /**
      * Return a hex-num of this color.
      *
@@ -244,13 +244,13 @@ export declare class Color {
      *
      * @example chroma.color('purple').lch()
      */
-    lch(): [number, number, number];
+    lch(): LCH;
     /**
      * Returns the [XYZ] representation of this color. hue will always be in [0; 360). Values are never NaN.
      *
      * @example chroma.color('purple').xyz()
      */
-    xyz(): [number, number, number];
+    xyz(): XYZ;
     /**
      * Whether this [Color](#Color) is identical (strict equality of r, g, b, a) to `color`.
      */
@@ -827,7 +827,7 @@ export declare class Scale<T = Color> {
     /**
      * @ignore
      */
-    _at(t: number): string | number | Color | [number, number, number] | [number, number, number, number] | undefined;
+    _at(t: number): string | number | Color | RGB | CMYK | undefined;
     /**
      * @ignore
      */
@@ -936,6 +936,11 @@ declare type LCH = [number, number, number];
  * [hueDegrees, saturation1, lightness1]
  */
 declare type HSL = [number, number, number];
+/**
+ * @see https://en.wikipedia.org/wiki/HSL_and_HSV
+ * [hueDegrees, saturation1, value1]
+ */
+declare type HSV = [number, number, number];
 /**
  * @see https://en.wikipedia.org/w/index.php?title=HSI_color_space&redirect=no
  * [hueDegrees, saturation1, intensity1]

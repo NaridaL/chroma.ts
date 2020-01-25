@@ -11,7 +11,7 @@ TypeScript rewrite of [chroma-js](https://github.com/gka/chroma.js). Includes:
 *   No more `NaN` values.
 *   Exceptions on invalid inputs.
 *   Better inline documentation.
-*   Smaller (11.23 KB gzipped).
+*   Smaller (11.24 KB gzipped).
 
 Installation
 ------------

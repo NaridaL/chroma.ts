@@ -190,7 +190,11 @@ suite("chroma.ts", () => {
 		})
 
 		test("random", () => assert.ok("number" == typeof chroma.random().num()))
-		test("random w/ randomSource", () => assertColorsEqual(chroma.random(() => 0xab / 255), "#ababab"))
+		test("random w/ randomSource", () =>
+			assertColorsEqual(
+				chroma.random(() => 0xab / 255),
+				"#ababab",
+			))
 
 		test("set returns new Color", () => {
 			const color = chroma.hsl(20, 0.5, 1)
