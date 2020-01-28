@@ -1,4 +1,4 @@
-[<img alt="Travis" src="https://img.shields.io/travis/NaridaL/chroma.ts.svg?style=flat-square">](https://travis-ci.com/NaridaL/chroma.ts) [<img alt="npm" src="https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square">](https://www.npmjs.com/package/chroma.ts) [<img alt="David" src="https://img.shields.io/david/expressjs/express.svg?style=flat-square">](https://david-dm.org/NaridaL/chroma.ts)
+[<img alt="Travis" src="https://img.shields.io/travis/com/NaridaL/chroma.ts.svg?style=flat-square">](https://travis-ci.com/NaridaL/chroma.ts) [<img alt="npm" src="https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square">](https://www.npmjs.com/package/chroma.ts) [<img alt="David" src="https://img.shields.io/david/expressjs/express.svg?style=flat-square">](https://david-dm.org/NaridaL/chroma.ts)
 
 chroma.ts
 =========

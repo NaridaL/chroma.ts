@@ -68,7 +68,7 @@ const sorter = (a: any, b: any) => a.sources[0].line - b.sources[0].line
 
 const gzippedBundleSize = filesize(gzipSync(fs.readFileSync("./dist/index.umd.min.js", "utf8")).byteLength)
 console.log("gzippedBundleSize:", gzippedBundleSize)
-const badges = `[![Travis](https://img.shields.io/travis/NaridaL/chroma.ts.svg?style=flat-square)](https://travis-ci.com/NaridaL/chroma.ts)
+const badges = `[![Travis](https://img.shields.io/travis/com/NaridaL/chroma.ts.svg?style=flat-square)](https://travis-ci.com/NaridaL/chroma.ts)
 [![npm](https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square)](https://www.npmjs.com/package/chroma.ts)
 [![David](https://img.shields.io/david/expressjs/express.svg?style=flat-square)](https://david-dm.org/NaridaL/chroma.ts)`
 
