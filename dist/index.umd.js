@@ -1077,17 +1077,16 @@
 	    }
 	    return blend_fs[mode](bottom, top);
 	}
-	var blend_fs;
-	(function (blend_fs) {
-	    blend_fs.normal = blend_f(each((a, _) => a));
-	    blend_fs.multiply = blend_f(each((a, b) => (a * b) / 255));
-	    blend_fs.screen = blend_f(each(_screen));
-	    blend_fs.overlay = blend_f(each(_overlay));
-	    blend_fs.darken = blend_f(each(min));
-	    blend_fs.lighten = blend_f(each(max));
-	    blend_fs.dodge = blend_f(each(_dodge));
-	    blend_fs.burn = blend_f(each(_burn));
-	})(blend_fs || (blend_fs = {}));
+	const blend_fs = {
+	    normal: blend_f(each((a, _) => a)),
+	    multiply: blend_f(each((a, b) => (a * b) / 255)),
+	    screen: blend_f(each(_screen)),
+	    overlay: blend_f(each(_overlay)),
+	    darken: blend_f(each(min)),
+	    lighten: blend_f(each(max)),
+	    dodge: blend_f(each(_dodge)),
+	    burn: blend_f(each(_burn)),
+	};
 	function scale(...args) {
 	    const f = (t => f._at(t));
 	    Object.getOwnPropertyNames(Scale.prototype).forEach(key => (f[key] = Scale.prototype[key]));

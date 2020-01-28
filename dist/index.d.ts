@@ -654,16 +654,16 @@ export declare function bezier(...chromables: Chromable[]): {
  */
 export declare function blend(bottom: Chromable, top: Chromable, mode: BlendMode): Color;
 export declare type BlendMode = keyof typeof blend_fs;
-declare namespace blend_fs {
-    const normal = blend_f(each((a, _) => a));
-    const multiply = blend_f(each((a, b) => (a * b) / 255));
-    const screen = blend_f(each(_screen));
-    const overlay = blend_f(each(_overlay));
-    const darken = blend_f(each(min));
-    const lighten = blend_f(each(max));
-    const dodge = blend_f(each(_dodge));
-    const burn = blend_f(each(_burn));
-}
+declare const blend_fs: {
+    normal: (bottom: Chromable, top: Chromable) => Color;
+    multiply: (bottom: Chromable, top: Chromable) => Color;
+    screen: (bottom: Chromable, top: Chromable) => Color;
+    overlay: (bottom: Chromable, top: Chromable) => Color;
+    darken: (bottom: Chromable, top: Chromable) => Color;
+    lighten: (bottom: Chromable, top: Chromable) => Color;
+    dodge: (bottom: Chromable, top: Chromable) => Color;
+    burn: (bottom: Chromable, top: Chromable) => Color;
+};
 /**
  * @param colors
  * @example scale = chroma.scale(['yellow', '008ae5'])

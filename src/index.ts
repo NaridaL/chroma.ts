@@ -1303,15 +1303,15 @@ export function blend(bottom: Chromable, top: Chromable, mode: BlendMode) {
 	return blend_fs[mode](bottom, top)
 }
 export type BlendMode = keyof typeof blend_fs
-namespace blend_fs {
-	export const normal = blend_f(each((a, _) => a))
-	export const multiply = blend_f(each((a, b) => (a * b) / 255))
-	export const screen = blend_f(each(_screen))
-	export const overlay = blend_f(each(_overlay))
-	export const darken = blend_f(each(min))
-	export const lighten = blend_f(each(max))
-	export const dodge = blend_f(each(_dodge))
-	export const burn = blend_f(each(_burn))
+const blend_fs = {
+	normal: blend_f(each((a, _) => a)),
+	multiply: blend_f(each((a, b) => (a * b) / 255)),
+	screen: blend_f(each(_screen)),
+	overlay: blend_f(each(_overlay)),
+	darken: blend_f(each(min)),
+	lighten: blend_f(each(max)),
+	dodge: blend_f(each(_dodge)),
+	burn: blend_f(each(_burn)),
 }
 
 /**
