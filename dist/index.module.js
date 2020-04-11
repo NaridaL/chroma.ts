@@ -247,10 +247,10 @@ class Color {
     }
     name(closest = false) {
         const thisNum = this.num();
-        const name = Object.keys(w3cx11).find(name => w3cx11[name] == thisNum);
+        const name = Object.keys(w3cx11).find((name) => w3cx11[name] == thisNum);
         if (!name && closest) {
             const [thisLStar, thisAStar, thisBStar] = this.lab();
-            return withMax(Object.keys(w3cx11), name => {
+            return withMax(Object.keys(w3cx11), (name) => {
                 const [lStar, aStar, bStar] = num(w3cx11[name]).lab();
                 return -hypot(thisLStar - lStar, thisAStar - aStar, thisBStar - bStar);
             });
@@ -807,8 +807,8 @@ const w3cx11 = {
  * @example chroma.cubehelix().start(200).rotations(-0.5).gamma(0.8).lightness([0.3, 0.8])
  */
 function cubehelix(start = 300, rotations = -1.5, hue = 1, gamma = 1, lightness = [0, 1]) {
-    const f = (t => f.at(t));
-    Object.getOwnPropertyNames(CubeHelix.prototype).forEach(key => (f[key] = CubeHelix.prototype[key]));
+    const f = ((t) => f.at(t));
+    Object.getOwnPropertyNames(CubeHelix.prototype).forEach((key) => (f[key] = CubeHelix.prototype[key]));
     f.start(start);
     f.rotations(rotations);
     f.hue(hue);
@@ -1009,7 +1009,7 @@ function xyz(...args) {
  * @example chroma.average(['red', 'rgba(0,0,0,0.5)']).css()
  */
 function average(chromables, mode = "rgb") {
-    const colors = chromables.map(c => color(c));
+    const colors = chromables.map((c) => color(c));
     if (mode == "lrgb") {
         return _average_lrgb(colors);
     }
@@ -1082,13 +1082,13 @@ const blend_fs = {
     burn: blend_f(each(_burn)),
 };
 function scale(...args) {
-    const f = (t => f._at(t));
-    Object.getOwnPropertyNames(Scale.prototype).forEach(key => (f[key] = Scale.prototype[key]));
+    const f = ((t) => f._at(t));
+    Object.getOwnPropertyNames(Scale.prototype).forEach((key) => (f[key] = Scale.prototype[key]));
     if (Array.isArray(args[0]))
         args = args[0];
     if (args.length == 1 && "string" == typeof args[0])
         args = brewer[args[0]];
-    f._init("function" == typeof args[0] ? args[0] : args.map(a => color(a)));
+    f._init("function" == typeof args[0] ? args[0] : args.map((a) => color(a)));
     //f.setColors(args.length > 1 ? args : args[0])
     return f;
 }
@@ -1112,7 +1112,7 @@ class Scale {
     domain(...domain) {
         if (undefined === domain[0]) {
             return "function" !== typeof this._colors
-                ? this._pos.map(p => lerp(this._min, this._max, p))
+                ? this._pos.map((p) => lerp(this._min, this._max, p))
                 : [this._min, this._max];
         }
         this._min = domain[0];
@@ -1124,7 +1124,7 @@ class Scale {
             }
         }
         else if ("function" !== typeof this._colors && domain.length == this._colors.length) {
-            this._pos = domain.map(d => lerpInv(this._min, this._max, d));
+            this._pos = domain.map((d) => lerpInv(this._min, this._max, d));
         }
         else {
             throw new Error("invalid domain " + domain);
@@ -1217,9 +1217,9 @@ class Scale {
             else {
                 samples = this.domain(); // TODO?!
             }
-            result = samples.map(s => this._color(s));
+            result = samples.map((s) => this._color(s));
         }
-        return (format != "color" ? result.map(c => c[format]()) : result);
+        return (format != "color" ? result.map((c) => c[format]()) : result);
     }
     cache(enableCache) {
         if (undefined === enableCache) {
@@ -1259,7 +1259,7 @@ class Scale {
         this._gamma = 1;
     }
     _getClass(value) {
-        return this._classes.findIndex(cls => value <= cls) - 1;
+        return this._classes.findIndex((cls) => value <= cls) - 1;
     }
     _color(val, bypassMap = false) {
         let t;
@@ -1326,7 +1326,7 @@ class Scale {
         const L0 = this._color(0, true).lab()[0];
         const L1 = this._color(1, true).lab()[0];
         const L_ideal = lerp(L0, L1, t0_1);
-        return bisect(t => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8);
+        return bisect((t) => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8);
     }
     _resetCache() {
         if (this._cache)
@@ -1442,7 +1442,7 @@ function analyze(data) {
             r.count += 1;
         }
     }
-    data.forEach(val => add(val));
+    data.forEach((val) => add(val));
     r.domain = [r.min, r.max];
     r.limits = function (mode, num) {
         return limits(this, mode, num);
@@ -1492,7 +1492,7 @@ function limits(data, mode = "e", num = 7) {
             clusterSizes.fill(0);
             for (let i = 0; i < values.length; i++) {
                 const value = values[i];
-                const minDistIndex = indexOfMax(centroids, c => -abs(c - value));
+                const minDistIndex = indexOfMax(centroids, (c) => -abs(c - value));
                 clusterSizes[minDistIndex]++;
                 assignments[i] = minDistIndex;
             }
@@ -1560,28 +1560,28 @@ interpolators.lrgb = function (col1, col2, f) {
     return new Color(sqrt(r1 ** 2 * (1 - f) + r2 ** 2 * f), sqrt(g1 ** 2 * (1 - f) + g2 ** 2 * f), sqrt(b1 ** 2 * (1 - f) + b2 ** 2 * f), lerp(a1, a2, f));
 };
 function _bezier(chromables) {
-    const colors = chromables.map(c => color(c));
-    const [lab0, lab1, lab2, lab3] = colors.map(c => c.lab());
+    const colors = chromables.map((c) => color(c));
+    const [lab0, lab1, lab2, lab3] = colors.map((c) => c.lab());
     if (2 == chromables.length) {
         // linear interpolation
-        return t => {
-            return lab([0, 1, 2].map(i => lerp(lab0[i], lab1[i], t)));
+        return (t) => {
+            return lab([0, 1, 2].map((i) => lerp(lab0[i], lab1[i], t)));
         };
     }
     else if (3 == chromables.length) {
         // quadratic bezier interpolation
         const bezier2 = (p0, p1, p2, t) => (1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2;
-        return t => lab([0, 1, 2].map(i => bezier2(lab0[i], lab1[i], lab2[i], t)));
+        return (t) => lab([0, 1, 2].map((i) => bezier2(lab0[i], lab1[i], lab2[i], t)));
     }
     else if (4 == chromables.length) {
         // cubic bezier interpolation
         const bezier3 = (p0, p1, p2, p3, t) => (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
-        return t => lab([0, 1, 2].map(i => bezier3(lab0[i], lab1[i], lab2[i], lab3[i], t)));
+        return (t) => lab([0, 1, 2].map((i) => bezier3(lab0[i], lab1[i], lab2[i], lab3[i], t)));
     }
     else if (5 == chromables.length) {
         const I0 = _bezier(colors.slice(0, 3));
         const I1 = _bezier(colors.slice(2, 5));
-        return t => (t < 0.5 ? I0(t * 2) : I1((t - 0.5) * 2));
+        return (t) => (t < 0.5 ? I0(t * 2) : I1((t - 0.5) * 2));
     }
     else
         throw new Error();
@@ -1855,15 +1855,15 @@ function rgb2kelvin(r255, g255, b255) {
     if (g255 + b255 < 158.61) {
         console.log("0 < t < 20");
         // calc from green
-        return round(newtonIterate1d(t => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)), 15, 4) * 100);
+        return round(newtonIterate1d((t) => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)), 15, 4) * 100);
     }
     else if (b255 - r255 < 0) {
         console.log("20 < t < 66");
-        return round(newtonIterate1d(t => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)), 43, 4) * 100);
+        return round(newtonIterate1d((t) => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)), 43, 4) * 100);
     }
     else {
         console.log("0 < t < 400, start= " + (-1.4 * (r255 + g255) + 755));
-        return round(newtonIterate1d(t => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)), -1.4 * (r255 + g255) + 755, 8) * 100);
+        return round(newtonIterate1d((t) => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)), -1.4 * (r255 + g255) + 755, 8) * 100);
     }
 }
 _input.temperature = _input.kelvin = _input.K = kelvin2rgb;

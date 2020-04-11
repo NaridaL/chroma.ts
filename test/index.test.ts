@@ -79,7 +79,7 @@ function assertColorsEqual(actual: chroma.Chromable, expected: chroma.Chromable,
 
 suite("chroma.ts", () => {
 	function testColorConversionForMode(format: ColorFormat) {
-		TEST_COLOR_NAMES.forEach(colorName =>
+		TEST_COLOR_NAMES.forEach((colorName) =>
 			test(`should convert ${colorName} correctly`, () => {
 				const col = color(colorName)
 				const colorInFormat = col[format]()!
@@ -88,27 +88,27 @@ suite("chroma.ts", () => {
 			}),
 		)
 		if ("css" !== format && "gl" !== format && "num" !== format) {
-			const colorInFormat = (color("goldenrod")[format]() as number[]).map(x => round10(x, -2))
+			const colorInFormat = (color("goldenrod")[format]() as number[]).map((x) => round10(x, -2))
 			const params = [...colorInFormat, 0.42]
-			test(`chroma.${format}(${params.map(v => JSON.stringify(v)).join()}) has correct alpha`, () => {
+			test(`chroma.${format}(${params.map((v) => JSON.stringify(v)).join()}) has correct alpha`, () => {
 				const backInRGBWithAlpha = (chroma as any)[format](...params)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
-			test(`color(${params.map(v => JSON.stringify(v)).join()}, "${format}") has correct alpha`, () => {
+			test(`color(${params.map((v) => JSON.stringify(v)).join()}, "${format}") has correct alpha`, () => {
 				const backInRGBWithAlpha = (color as any)(...params, format)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
-			test(`color([${params.map(v => JSON.stringify(v)).join()}], "${format}") has correct alpha`, () => {
+			test(`color([${params.map((v) => JSON.stringify(v)).join()}], "${format}") has correct alpha`, () => {
 				const backInRGBWithAlpha = (color as any)(params, format)
 				assert.equal(backInRGBWithAlpha.alpha(), 0.42)
 			})
 		}
 	}
 
-	TEST_COLOR_MODES.forEach(colorMode => suite(colorMode, () => testColorConversionForMode(colorMode)))
+	TEST_COLOR_MODES.forEach((colorMode) => suite(colorMode, () => testColorConversionForMode(colorMode)))
 
 	function testConcrete(format: ColorFormat, roundExps: number | number[], values: { [color: string]: any }) {
-		Object.keys(values).forEach(colorString => {
+		Object.keys(values).forEach((colorString) => {
 			test(`convert from ${colorString}`, () => {
 				const col = color(colorString)
 				const colorInFormat = col[format]()
@@ -198,7 +198,7 @@ suite("chroma.ts", () => {
 
 		test("set returns new Color", () => {
 			const color = chroma.hsl(20, 0.5, 1)
-			const color2 = color.set("hsl.h", x => x * 3)
+			const color2 = color.set("hsl.h", (x) => x * 3)
 			assert.notStrictEqual(color, color2)
 			assertColorsEqual(color2, chroma.hsl(60, 0.5, 1))
 		})
@@ -279,7 +279,7 @@ suite("chroma.ts", () => {
 	suite("kelvin", () => {
 		suite("kelvin -> color", () => {
 			function tempHasColor(expected: chroma.Chromable) {
-				return function(this: Mocha.Context) {
+				return function (this: Mocha.Context) {
 					assertColorsEqual(chroma.kelvin(+this.test!.title), expected)
 				}
 			}
@@ -305,7 +305,7 @@ suite("chroma.ts", () => {
 			})
 
 			function hasTemp(expected: number, exp = 2) {
-				return function(this: Mocha.Context) {
+				return function (this: Mocha.Context) {
 					assert.equal(round10(color(this.test!.title.split(/\s+/)[0]).temperature(), exp), expected)
 				}
 			}
@@ -345,7 +345,7 @@ suite("chroma.ts", () => {
 
 		function isColor(...args: any[]) {
 			const col = (color as any)(...args)
-			return function(this: Mocha.Context) {
+			return function (this: Mocha.Context) {
 				assertColorsEqual(color(this.test!.title), col)
 			}
 		}
@@ -434,7 +434,7 @@ suite("chroma.ts", () => {
 
 	suite("luminance", () => {
 		function hasLuminance(expectedLuminance: number) {
-			return function(this: Mocha.Context) {
+			return function (this: Mocha.Context) {
 				assert.equal(round10(color(this.test!.title).luminance(), -3), round10(expectedLuminance, -3))
 			}
 		}
@@ -458,16 +458,7 @@ suite("chroma.ts", () => {
 		})
 
 		// setting luminance
-		test("set red luminance to 0.4", () =>
-			assert.equal(
-				round10(
-					color("red")
-						.luminance(0.4)
-						.luminance(),
-					-2,
-				),
-				0.4,
-			))
+		test("set red luminance to 0.4", () => assert.equal(round10(color("red").luminance(0.4).luminance(), -2), 0.4))
 		test("set red luminance to 0", () => {
 			const redLum0 = color("red").luminance(0)
 			assert.equal(round10(redLum0.luminance(), -2), 0)
@@ -507,11 +498,7 @@ suite("chroma.ts", () => {
 		test("average h in lch", () => {
 			const avg = chroma.average([chroma.lch(50, 50, 0), chroma.lch(50, 50, 90)], "lch")
 			assertColorsEqual(avg, chroma.lch(50, 50, 45))
-			console.log(
-				chroma
-					.bezier(["white", "black"])(0)
-					.hex(),
-			)
+			console.log(chroma.bezier(["white", "black"])(0).hex())
 			assert.equal(round10(avg.lch()[2], 0), 45)
 		})
 		test("average in hsl of same colors", () =>
@@ -675,7 +662,7 @@ suite("chroma.ts", () => {
 		test("throws for invalid color mode", () => assert.throws(() => chroma.mix("red", "white", 0.2, "cmyk" as any)))
 
 		suite("interpolates alpha", () =>
-			INTERPOLATION_MODES.forEach(imode =>
+			INTERPOLATION_MODES.forEach((imode) =>
 				test(imode, () =>
 					assert.equal(
 						chroma.mix(color("red").alpha(0.7), color("white").alpha(0.9), 0.5, imode).alpha(),
@@ -741,10 +728,7 @@ suite("chroma.ts", () => {
 			assert.equal(f.colors(2, undefined).length, 2, "color mode null len")
 		})
 		test("simple hsv scale (white -> black), classified", () => {
-			const f = chroma
-				.scale(["white", "black"])
-				.classes(7)
-				.mode("hsv")
+			const f = chroma.scale(["white", "black"]).classes(7).mode("hsv")
 			assertColorsEqual(f(0), "#ffffff", "starts white")
 			assertColorsEqual(f(0.5), "#808080", "mid gray")
 			assertColorsEqual(f(1), "#000000", "ends black")
@@ -769,11 +753,7 @@ suite("chroma.ts", () => {
 			assertColorsEqual(f(100), "#006837")
 		})
 		test("colorbrewer scale w/ domain w/ classes", () => {
-			const f = chroma
-				.scale("RdYlGn")
-				.domain(0, 100)
-				.out("hex")
-				.classes(5)
+			const f = chroma.scale("RdYlGn").domain(0, 100).out("hex").classes(5)
 			assertColorsEqual(f(0), "#a50026")
 			assertColorsEqual(f(10), "#a50026")
 			assertColorsEqual(f(50), "#ffffbf")
@@ -782,10 +762,7 @@ suite("chroma.ts", () => {
 			assert.equal(new Set(f.colors(100) as string[]).size, 5, "only 5 different values")
 		})
 		test("calling domain with no arguments", () => {
-			const f = chroma
-				.scale("RdYlGn")
-				.domain(0, 100)
-				.classes(5)
+			const f = chroma.scale("RdYlGn").domain(0, 100).classes(5)
 			assert.deepEqual(f.domain(), [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], "returns domain")
 			assert.deepEqual(f.classes(), [0, 20, 40, 60, 80, 100], "returns classes")
 		})
@@ -803,11 +780,7 @@ suite("chroma.ts", () => {
 		})
 		test("domain w/ only min/max sets equidistant values", () => {
 			assert.deepEqual(
-				chroma
-					.scale("honeydew", "hotpink", "indianred")
-					.domain(0, 0.25, 1)
-					.domain(0, 100)
-					.domain(),
+				chroma.scale("honeydew", "hotpink", "indianred").domain(0, 0.25, 1).domain(0, 100).domain(),
 				[0, 50, 100],
 			)
 		})
@@ -821,16 +794,11 @@ suite("chroma.ts", () => {
 		//	assertColorsEqual(f(1), "#000000", "ends black")
 		//})
 		test("css rgb colors", () => {
-			const css = chroma
-				.scale("YlGnBu")(0.3)
-				.css()
+			const css = chroma.scale("YlGnBu")(0.3).css()
 			assert.equal(css, "rgb(170,222,183)", "have rounded rgb() values")
 		})
 		test("css rgba colors", () => {
-			const css = chroma
-				.scale("YlGnBu")(0.3)
-				.alpha(0.675)
-				.css()
+			const css = chroma.scale("YlGnBu")(0.3).alpha(0.675).css()
 			assert.equal(css, "rgba(170,222,183,0.675)", "dont round alpha value")
 		})
 		test("get colors from a scale with more than two colors", () => {
@@ -916,18 +884,12 @@ suite("chroma.ts", () => {
 			})
 
 			test("hot w/ correction", () => {
-				const f = chroma
-					.scale(["white", "yellow", "red", "black"])
-					.mode("lab")
-					.correctLightness(true)
+				const f = chroma.scale(["white", "yellow", "red", "black"]).mode("lab").correctLightness(true)
 				assert.equal(Math.round(f(0.5).lab()[0]), 50, "center L")
 			})
 
 			test("hot w/o correction - domained [0,100]", () => {
-				const f = chroma
-					.scale(["white", "yellow", "red", "black"])
-					.domain(0, 100)
-					.mode("lab")
+				const f = chroma.scale(["white", "yellow", "red", "black"]).domain(0, 100).mode("lab")
 				assert.equal(Math.round(f(50).lab()[0]), 75, "center L")
 			})
 
@@ -949,10 +911,7 @@ suite("chroma.ts", () => {
 		test("cache performance", () => {
 			function run(cache: boolean) {
 				const RUNS = 100000
-				const s = chroma
-					.scale("RdYlGn")
-					.mode("lab")
-					.cache(cache)
+				const s = chroma.scale("RdYlGn").mode("lab").cache(cache)
 				const round = (f: number) => Math.round((f * RUNS) / 10) / (RUNS / 10)
 				const start = new Date().getTime()
 				for (let i = 0; i < RUNS; i++) {

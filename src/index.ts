@@ -302,10 +302,10 @@ export class Color {
 	public name(closest?: boolean): string | undefined
 	public name(closest: boolean = false): string | undefined {
 		const thisNum = this.num()
-		const name = Object.keys(w3cx11).find(name => (w3cx11 as any)[name] == thisNum)
+		const name = Object.keys(w3cx11).find((name) => (w3cx11 as any)[name] == thisNum)
 		if (!name && closest) {
 			const [thisLStar, thisAStar, thisBStar] = this.lab()
-			return withMax(Object.keys(w3cx11) as (keyof typeof w3cx11)[], name => {
+			return withMax(Object.keys(w3cx11) as (keyof typeof w3cx11)[], (name) => {
 				const [lStar, aStar, bStar] = num(w3cx11[name]).lab()
 				return -hypot(thisLStar - lStar, thisAStar - aStar, thisBStar - bStar)
 			})
@@ -926,9 +926,9 @@ export function cubehelix(
 	gamma = 1,
 	lightness: number | [number, number] = [0, 1],
 ) {
-	const f: CubeHelix = (t => f.at(t)) as CubeHelix
+	const f: CubeHelix = ((t) => f.at(t)) as CubeHelix
 	;(Object.getOwnPropertyNames(CubeHelix.prototype) as (keyof typeof CubeHelix)[]).forEach(
-		key => (f[key] = CubeHelix.prototype[key]),
+		(key) => (f[key] = CubeHelix.prototype[key]),
 	)
 	f.start(start)
 	f.rotations(rotations)
@@ -1230,7 +1230,7 @@ export function xyz(...args: any[]) {
  * @example chroma.average(['red', 'rgba(0,0,0,0.5)']).css()
  */
 export function average(chromables: Chromable[], mode: InterpolationMode = "rgb") {
-	const colors = chromables.map(c => color(c))
+	const colors = chromables.map((c) => color(c))
 	if (mode == "lrgb") {
 		return _average_lrgb(colors)
 	}
@@ -1325,13 +1325,13 @@ const blend_fs = {
 export function scale(colors: Chromable[] | keyof typeof brewer | ((f: number) => Color)): Scale
 export function scale(...colors: Chromable[]): Scale
 export function scale(...args: any[]) {
-	const f: Scale = (t => (f as any)._at(t)) as Scale
+	const f: Scale = ((t) => (f as any)._at(t)) as Scale
 	;(Object.getOwnPropertyNames(Scale.prototype) as (keyof typeof Scale)[]).forEach(
-		key => (f[key] = Scale.prototype[key]),
+		(key) => (f[key] = Scale.prototype[key]),
 	)
 	if (Array.isArray(args[0])) args = args[0]
 	if (args.length == 1 && "string" == typeof args[0]) args = brewer[args[0] as keyof typeof brewer]
-	;(f as any)._init("function" == typeof args[0] ? args[0] : args.map(a => color(a)))
+	;(f as any)._init("function" == typeof args[0] ? args[0] : args.map((a) => color(a)))
 	//f.setColors(args.length > 1 ? args : args[0])
 	return f
 }
@@ -1428,7 +1428,7 @@ export class Scale<T = Color> {
 	public domain(...domain: number[]): number[] | this {
 		if (undefined === domain[0]) {
 			return "function" !== typeof this._colors
-				? this._pos!.map(p => lerp(this._min, this._max, p))
+				? this._pos!.map((p) => lerp(this._min, this._max, p))
 				: [this._min, this._max]
 		}
 		this._min = domain[0]
@@ -1439,7 +1439,7 @@ export class Scale<T = Color> {
 				this._pos = this._colors.map((_, c) => c / (this._colors.length - 1))
 			}
 		} else if ("function" !== typeof this._colors && domain.length == this._colors.length) {
-			this._pos = domain.map(d => lerpInv(this._min, this._max, d))
+			this._pos = domain.map((d) => lerpInv(this._min, this._max, d))
 		} else {
 			throw new Error("invalid domain " + domain)
 		}
@@ -1570,10 +1570,10 @@ export class Scale<T = Color> {
 			} else {
 				samples = this.domain() // TODO?!
 			}
-			result = samples.map(s => this._color(s))
+			result = samples.map((s) => this._color(s))
 		}
 
-		return (format != "color" ? result.map(c => c[format as "hex"]()) : result) as any
+		return (format != "color" ? result.map((c) => c[format as "hex"]()) : result) as any
 	}
 
 	/**
@@ -1639,7 +1639,7 @@ export class Scale<T = Color> {
 	}
 
 	private _getClass(value: number) {
-		return this._classes!.findIndex(cls => value <= cls) - 1
+		return this._classes!.findIndex((cls) => value <= cls) - 1
 	}
 
 	private _color(val: number, bypassMap = false) {
@@ -1703,7 +1703,7 @@ export class Scale<T = Color> {
 		const L0 = this._color(0, true).lab()[0]
 		const L1 = this._color(1, true).lab()[0]
 		const L_ideal = lerp(L0, L1, t0_1)
-		return bisect(t => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8)
+		return bisect((t) => this._color(t, true).lab()[0] - L_ideal, 0, 1, 8)
 	}
 	private _resetCache() {
 		if (this._cache) this._cache.clear()
@@ -1827,9 +1827,9 @@ export function analyze(data: number[]): DataInfo {
 			r.count += 1
 		}
 	}
-	data.forEach(val => add(val))
+	data.forEach((val) => add(val))
 	r.domain = [r.min, r.max]
-	r.limits = function(mode, num) {
+	r.limits = function (mode, num) {
 		return limits(this, mode, num)
 	}
 	return r
@@ -1875,7 +1875,7 @@ export function limits(data: number[] | DataInfo, mode: LimitsMode = "e", num = 
 			clusterSizes.fill(0)
 			for (let i = 0; i < values.length; i++) {
 				const value = values[i]
-				const minDistIndex = indexOfMax(centroids, c => -abs(c - value))
+				const minDistIndex = indexOfMax(centroids, (c) => -abs(c - value))
 				clusterSizes[minDistIndex]++
 				assignments[i] = minDistIndex
 			}
@@ -1944,13 +1944,13 @@ function linear_interpolator(col1: Color, col2: Color, f: number, m: ColorMode) 
 }
 interpolators.xyz = interpolators.rgb = interpolators.lab = linear_interpolator
 
-interpolators.num = function(col1, col2, f) {
+interpolators.num = function (col1, col2, f) {
 	const n1 = col1.num()
 	const n2 = col2.num()
 	return num(lerp(n1, n2, f))
 }
 
-interpolators.lrgb = function(col1, col2, f) {
+interpolators.lrgb = function (col1, col2, f) {
 	const [r1, g1, b1, a1] = col1.rgba(false, false)
 	const [r2, g2, b2, a2] = col2.rgba(false, false)
 	return new Color(
@@ -1962,27 +1962,27 @@ interpolators.lrgb = function(col1, col2, f) {
 }
 
 function _bezier(chromables: Chromable[]): (t: number) => Color {
-	const colors = chromables.map(c => color(c))
-	const [lab0, lab1, lab2, lab3] = colors.map(c => c.lab())
+	const colors = chromables.map((c) => color(c))
+	const [lab0, lab1, lab2, lab3] = colors.map((c) => c.lab())
 	if (2 == chromables.length) {
 		// linear interpolation
-		return t => {
-			return lab([0, 1, 2].map(i => lerp(lab0[i], lab1[i], t)) as LAB)
+		return (t) => {
+			return lab([0, 1, 2].map((i) => lerp(lab0[i], lab1[i], t)) as LAB)
 		}
 	} else if (3 == chromables.length) {
 		// quadratic bezier interpolation
 		const bezier2 = (p0: number, p1: number, p2: number, t: number) =>
 			(1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2
-		return t => lab([0, 1, 2].map(i => bezier2(lab0[i], lab1[i], lab2[i], t)) as LAB)
+		return (t) => lab([0, 1, 2].map((i) => bezier2(lab0[i], lab1[i], lab2[i], t)) as LAB)
 	} else if (4 == chromables.length) {
 		// cubic bezier interpolation
 		const bezier3 = (p0: number, p1: number, p2: number, p3: number, t: number) =>
 			(1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
-		return t => lab([0, 1, 2].map(i => bezier3(lab0[i], lab1[i], lab2[i], lab3[i], t)) as LAB)
+		return (t) => lab([0, 1, 2].map((i) => bezier3(lab0[i], lab1[i], lab2[i], lab3[i], t)) as LAB)
 	} else if (5 == chromables.length) {
 		const I0 = _bezier(colors.slice(0, 3))
 		const I1 = _bezier(colors.slice(2, 5))
-		return t => (t < 0.5 ? I0(t * 2) : I1((t - 0.5) * 2))
+		return (t) => (t < 0.5 ? I0(t * 2) : I1((t - 0.5) * 2))
 	} else throw new Error()
 }
 
@@ -2254,7 +2254,7 @@ function hsl2css([h, s, l]: HSL, alpha: number) {
 
 _input.css = css2rgb
 
-_input.name = function(name) {
+_input.name = function (name) {
 	return num2rgb((w3cx11 as any)[name])
 }
 
@@ -2311,7 +2311,7 @@ function cmyk2rgb(c1: number, m1: number, y1: number, k1: number, alpha1 = 1): R
 
 _input.cmyk = cmyk2rgb
 
-_input.gl = function(r: number, g: number, b: number, a: number = 1): RGBA {
+_input.gl = function (r: number, g: number, b: number, a: number = 1): RGBA {
 	return [r * 255, g * 255, b * 255, a]
 }
 
@@ -2362,7 +2362,7 @@ function rgb2kelvin(r255: number, g255: number, b255: number) {
 		// calc from green
 		return round(
 			newtonIterate1d(
-				t => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)),
+				(t) => g255 - (-155.25485562709179 - 0.44596950469579133 * (t - 2) + 104.49216199393888 * log(t - 2)),
 				15,
 				4,
 			) * 100,
@@ -2372,7 +2372,7 @@ function rgb2kelvin(r255: number, g255: number, b255: number) {
 		console.log("20 < t < 66")
 		return round(
 			newtonIterate1d(
-				t => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)),
+				(t) => b255 - (-254.76935184120902 + 0.8274096064007395 * (t - 10) + 115.67994401066147 * log(t - 10)),
 				43,
 				4,
 			) * 100,
@@ -2384,7 +2384,7 @@ function rgb2kelvin(r255: number, g255: number, b255: number) {
 		console.log("0 < t < 400, start= " + (-1.4 * (r255 + g255) + 755))
 		return round(
 			newtonIterate1d(
-				t => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)),
+				(t) => r255 - (351.97690566805693 + 0.114206453784165 * (t - 55) - 40.25366309332127 * log(t - 55)),
 				-1.4 * (r255 + g255) + 755,
 				8,
 			) * 100,
@@ -2392,7 +2392,7 @@ function rgb2kelvin(r255: number, g255: number, b255: number) {
 		return ((r255 / 329.698727446) ** (1 / -0.1332047592) + 60) * 100
 	}
 	return newtonIterate1d(
-		k => {
+		(k) => {
 			const eps = 1e-9
 			const [kr, kg, kb] = kelvin2rgb(k)
 			const [kr2, kg2, kb2] = kelvin2rgb(k + eps)
@@ -2429,14 +2429,14 @@ function rgb2kelvin(r255: number, g255: number, b255: number) {
 _input.temperature = _input.kelvin = _input.K = kelvin2rgb
 
 function blend_f(f: (c1: RGB, c2: RGB) => RGB) {
-	return function(bottom: Chromable, top: Chromable) {
+	return function (bottom: Chromable, top: Chromable) {
 		const [r, g, b] = f(color(top).rgb(), color(bottom).rgb())
 		return rgb(r, g, b)
 	}
 }
 
 function each(f: (a: number, b: number) => number) {
-	return function(c1: RGB, c2: RGB): RGB {
+	return function (c1: RGB, c2: RGB): RGB {
 		return c1.map((e, i) => f(e, c2[i])) as RGB
 	}
 }
