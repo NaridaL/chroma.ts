@@ -48,7 +48,7 @@ turndownService.use(gfm)
 turndownService.keep(["sub"])
 turndownService.addRule("keep", {
 	filter: ["img"],
-	replacement: function(content: string, node: any) {
+	replacement: function (content: string, node: any) {
 		return node.outerHTML
 	},
 })
@@ -109,7 +109,7 @@ chroma.css('powderblue') // create a color
 			Alternatively, you can include the <a href="./dist/index.umd.js">UMD bundle</a> in a script tag and use the{" "}
 			<code>chroma</code> global.
 			<h2>API</h2>
-			{docJson.children[0].children.map(x => render(x, ""))}
+			{docJson.children[0].children.map((x) => render(x, ""))}
 			<h2>License</h2>
 			<p>
 				The original chroma-js library is released under <a href="LICENSE.chroma-js.txt">the BSD license</a>.
@@ -160,7 +160,7 @@ function Comment(props: { of: any }) {
 						const [min, max] = [d[0], d[d.length - 1]]
 						const s = 100
 						const hexes = Array.from({ length: s }, (_, i) => scale(lerp(min, max, i / (s - 1))))
-							.map(c => c.hex().substr(1))
+							.map((c) => c.hex().substr(1))
 							.join("")
 						return "http://localhost:10002/spaces/index.html#" + encodeURI(name) + "-" + hexes
 					}
@@ -197,7 +197,7 @@ function Comment(props: { of: any }) {
 									<>
 										[
 										{reactJoin(
-											x.map(v => {
+											x.map((v) => {
 												if ("number" !== typeof v) {
 													try {
 														return (
@@ -255,7 +255,7 @@ function Class({
 				signatures.map((sig, i) => (
 					<Signature of={{ ...sig, name: "__call" }} prefix={name} src={sources[i]} />
 				))}
-			{children && children.sort(sorter) && children.map(c => render(c, name))}
+			{children && children.sort(sorter) && children.map((c) => render(c, name))}
 		</>
 	)
 }
@@ -282,7 +282,7 @@ function Method({
 				<Signature key={i} of={sig} prefix={prefix} src={sources[i]} />
 			))}
 			<Comment of={comment} />
-			{children && children.sort(sorter) && children.map(c => render(c, name))}
+			{children && children.sort(sorter) && children.map((c) => render(c, name))}
 		</>
 	)
 }
@@ -292,7 +292,7 @@ function render(child: any, prefix: string): React.ReactNode {
 	if (child.flags && child.flags.isPrivate) {
 		return undefined
 	}
-	if (child.comment && child.comment.tags && child.comment.tags.some(tag => tag.tag === "internal")) {
+	if (child.comment && child.comment.tags && child.comment.tags.some((tag) => tag.tag === "internal")) {
 		return undefined
 	}
 	if (!child.flags.isExported && !["Interface", "Class"].includes(child.kindString)) {
@@ -309,7 +309,7 @@ function reactJoin(x: React.ReactNode[], joiner: React.ReactNode = ", ") {
 function Parameters({ of }: { of: ParameterReflection[] }): React.ReactNode {
 	return of
 		? reactJoin(
-				of.map(param => {
+				of.map((param) => {
 					const defaultMatch =
 						param.comment && param.comment.text && param.comment.text.match(/default=(.*)$/m)
 					const defaultValue = param.defaultValue || (defaultMatch && defaultMatch[1])
@@ -332,7 +332,7 @@ function TypeParameters({ of: typeParameters }: { of: TypeParameterReflection[] 
 	if (!typeParameters) return null
 	const uniqueTPs: TypeParameterReflection[] = []
 	for (const tp of typeParameters) {
-		if (!uniqueTPs.some(utp => utp.name == tp.name)) {
+		if (!uniqueTPs.some((utp) => utp.name == tp.name)) {
 			uniqueTPs.push(tp)
 		}
 	}
@@ -340,7 +340,7 @@ function TypeParameters({ of: typeParameters }: { of: TypeParameterReflection[] 
 		<>
 			{"&lt;"}
 			{reactJoin(
-				uniqueTPs.map(tp => tp.name),
+				uniqueTPs.map((tp) => tp.name),
 				", ",
 			)}
 			{"&gt;"}
@@ -378,8 +378,8 @@ function Type(type: Type & { inUnion?: boolean; noUndefinedInUnion?: boolean }) 
 		case "union":
 			return reactJoin(
 				type.types
-					.filter(t => !(type.noUndefinedInUnion && t.type == "intrinsic" && t.name == "undefined"))
-					.map(t => <Type {...t} inUnion={true} noUndefinedInUnion={type.noUndefinedInUnion} />),
+					.filter((t) => !(type.noUndefinedInUnion && t.type == "intrinsic" && t.name == "undefined"))
+					.map((t) => <Type {...t} inUnion={true} noUndefinedInUnion={type.noUndefinedInUnion} />),
 				" | ",
 			)
 		case "tuple":
@@ -389,7 +389,7 @@ function Type(type: Type & { inUnion?: boolean; noUndefinedInUnion?: boolean }) 
 				const sig = type.declaration.signatures[0]
 				return (
 					<>
-						{type.inUnion && "("}(<Parameters of={sig.parameters} />) => <Type {...sig.type} />
+						{type.inUnion && "("}(<Parameters of={sig.parameters} />) =&gt; <Type {...sig.type} />
 						{type.inUnion && ")"}
 					</>
 				)
@@ -467,13 +467,11 @@ function genScale(scale: chroma.Scale) {
 				)
 			})}
 
-			{d.map(dd => (
+			{d.map((dd) => (
 				<text
 					x={((lerpInv(min, max, dd) * 100) | 0) + "%"}
 					y="95%"
-					fill={scale(dd)
-						.textColor()
-						.css()}
+					fill={scale(dd).textColor().css()}
 					textAnchor={dd == min ? "start" : dd == max ? "end" : "middle"}
 					style={{ fontFamily: "monospace", fontSize: "smaller" }}
 					key={dd}

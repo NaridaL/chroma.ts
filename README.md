@@ -1,4 +1,4 @@
-[<img alt="Travis" src="https://img.shields.io/travis/com/NaridaL/chroma.ts.svg?style=flat-square">](https://travis-ci.com/NaridaL/chroma.ts) [<img alt="npm" src="https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square">](https://www.npmjs.com/package/chroma.ts) [<img alt="David" src="https://img.shields.io/david/expressjs/express.svg?style=flat-square">](https://david-dm.org/NaridaL/chroma.ts)
+[<img src="https://img.shields.io/travis/com/NaridaL/chroma.ts.svg?style=flat-square" alt="Travis">](https://travis-ci.com/NaridaL/chroma.ts) [<img src="https://img.shields.io/npm/v/chroma.ts.svg?style=flat-square" alt="npm">](https://www.npmjs.com/package/chroma.ts) [<img src="https://img.shields.io/david/expressjs/express.svg?style=flat-square" alt="David">](https://david-dm.org/NaridaL/chroma.ts)
 
 chroma.ts
 =========
@@ -11,7 +11,7 @@ TypeScript rewrite of [chroma-js](https://github.com/gka/chroma.js). Includes:
 *   No more `NaN` values.
 *   Exceptions on invalid inputs.
 *   Better inline documentation.
-*   Smaller (11.21 KB gzipped).
+*   Smaller (11.26 KB gzipped).
 
 Installation
 ------------
@@ -89,19 +89,19 @@ _example_ `chroma.color('yellow').alpha(0.7).hex('argb')` `"#b3ffff00"`
 
 ### `color.hsl`(): [HSL](#HSL) <sub><a href="src/index.ts#L247">src</a></sub>
 
-Returns the HSL representation of this color. hue will always be in \[0;360). Values are never NaN.
+Returns the \[HSL\] representation of this color. hue will always be in \[0;360). Values are never NaN.
 
 _example_ `chroma.color('purple').hsl()` \[300, 1, ~0.25\]  
 
-### `color.hsv`(): \[number, number, number\] <sub><a href="src/index.ts#L257">src</a></sub>
+### `color.hsv`(): [HSV](#HSV) <sub><a href="src/index.ts#L257">src</a></sub>
 
-Returns the HSL representation of this color. hue will always be in \[0;360). Values are never NaN.
+Returns the \[HSL\] representation of this color. hue will always be in \[0;360). Values are never NaN.
 
 _example_ `chroma.color('purple').hsv()` \[300, 1, ~0.5\]  
 
-### `color.hcg`(): \[number, number, number\] <sub><a href="src/index.ts#L267">src</a></sub>
+### `color.hcg`(): [HCG](#HCG) <sub><a href="src/index.ts#L267">src</a></sub>
 
-Returns the HSL representation of this color. hue will always be in \[0;360). Values are never NaN.
+Returns the \[HSL\] representation of this color. hue will always be in \[0;360). Values are never NaN.
 
 _example_ `chroma.color('purple').hcg()` \[300, ~0.5, 0\]  
 
@@ -123,7 +123,7 @@ _example_ `chroma.color('#ff0000').name()` `"red"`
 _example_ `chroma.color('#ff0001').name()`  
 _example_ `chroma.color('#ff0001').name(true)` `"red"`  
 
-### `color.cmyk`(): \[number, number, number, number\] <sub><a href="src/index.ts#L321">src</a></sub>
+### `color.cmyk`(): [CMYK](#CMYK) <sub><a href="src/index.ts#L321">src</a></sub>
 
 Get the [CMYK](#CMYK) representation of this color.
 
@@ -131,7 +131,7 @@ _example_ `chroma.color('red').cmyk()` \[0, 1, 1, 0\]
 
 ### `color.gl`(): [GL](#GL) <sub><a href="src/index.ts#L330">src</a></sub>
 
-Returns the GL representation of this color.
+Returns the \[GL\] representation of this color.
 
 _example_ `chroma.color('33cc00').gl()` \[0.2, 0.8, 0, 1\]  
 
@@ -147,7 +147,7 @@ _example_ `chroma.color('red').luminance()` `~0.21`
 
 ### `color.luminance`(_lum1_: number): this <sub><a href="src/index.ts#L351">src</a></sub>
 
-Return a new Color with `lum1` by linearly interpolating `this` with white (when increasing the luminance) or black (otherwise) in the XYZ color space.
+Return a new \[Color\] with `lum1` by linearly interpolating `this` with white (when increasing the luminance) or black (otherwise) in the \[XYZ\] color space.
 
 @see https://en.wikipedia.org/wiki/Relative\_luminance
 
@@ -164,7 +164,7 @@ _example_ `[c = chroma.color('#b3ccff'), c.temperature()]` \[<img align="top" sr
 
 ### `color.set`(_modeAndChannel_: string, _value_: number | ((_channel_: number) => number)): [Color](#Color) <sub><a href="src/index.ts#L388">src</a></sub>
 
-Returns a new Color with a channel changed.
+Returns a new \[Color\] with a channel changed.
 
 _example_ `chroma.color('skyblue').set('hsl.h', 0) // change hue to 0 deg (=red)` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/eb8787ff.svg?sanitize=true">  
 _example_ `chroma.color('hotpink').set('lch.c', 30) // set chromaticity to 30` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/ce8ca9ff.svg?sanitize=true">  
@@ -196,7 +196,7 @@ _example_ `chroma.rgb(0, 0, 255, 0.5).alpha()` `0.5`
 
 ### `color.alpha`(_alpha1_: number): [Color](#Color) <sub><a href="src/index.ts#L433">src</a></sub>
 
-Return new Color with given alpha value.
+Return new \[Color\] with given alpha value.
 
 _example_ `chroma.color('green').alpha(0.3)` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/0080004d.svg?sanitize=true">  
 _example_ `chroma.color('green').alpha(0.3).hex('rgba')` `"#0080004d"`  
@@ -212,7 +212,7 @@ _example_ `chroma.color('hotpink').brighter(3)` <img align="right" src="https://
 
 ### `color.saturate`(_amount_: number = 1): [Color](#Color) <sub><a href="src/index.ts#L467">src</a></sub>
 
-Returns a new Color with increased saturation.
+Returns a new \[Color\] with increased saturation.
 
 _example_ `chroma.color('slategray')` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/708090ff.svg?sanitize=true">  
 _example_ `chroma.color('slategray').saturate()` <img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/4b83aeff.svg?sanitize=true">  
@@ -227,15 +227,15 @@ Equivalent to `saturate(-amount)`.
 
 ### `color.premultiplied`(): [Color](#Color) <sub><a href="src/index.ts#L480">src</a></sub>
 
-### `color.hsi`(): \[number, number, number\] <sub><a href="src/index.ts#L490">src</a></sub>
+### `color.hsi`(): [HSI](#HSI) <sub><a href="src/index.ts#L490">src</a></sub>
 
-Returns the HSI representation of this color. hue will always be in \[0; 360). Values are never NaN.
+Returns the \[HSI\] representation of this color. hue will always be in \[0; 360). Values are never NaN.
 
 _example_ `chroma.color('purple').hsi()` \[300, 1, ~0.33\]  
 
-### `color.lab`(): \[number, number, number\] <sub><a href="src/index.ts#L500">src</a></sub>
+### `color.lab`(): [RGB](#RGB) <sub><a href="src/index.ts#L500">src</a></sub>
 
-Returns the LAB representation of this color.
+Returns the \[LAB\] representation of this color.
 
 _example_ `chroma.color('purple').lab()` \[~29.78, ~58.93, ~-36.49\]  
 
@@ -249,15 +249,15 @@ _example_ `chroma.color('yellow').alpha(0.7).hex()` `"#ffff00"`
 _example_ `chroma.color('yellow').alpha(0.7).hex('rgba')` `"#ffff00b3"`  
 _example_ `chroma.color('yellow').alpha(0.7).hex('argb')` `"#b3ffff00"`  
 
-### `color.lch`(): \[number, number, number\] <sub><a href="src/index.ts#L524">src</a></sub>
+### `color.lch`(): [LCH](#LCH) <sub><a href="src/index.ts#L524">src</a></sub>
 
-Returns the LCH representation of this color. hue will always be in \[0; 360). Values are never NaN.
+Returns the \[LCH\] representation of this color. hue will always be in \[0; 360). Values are never NaN.
 
 _example_ `chroma.color('purple').lch()` \[~29.78, ~69.31, ~328.23\]  
 
-### `color.xyz`(): \[number, number, number\] <sub><a href="src/index.ts#L534">src</a></sub>
+### `color.xyz`(): [XYZ](#XYZ) <sub><a href="src/index.ts#L534">src</a></sub>
 
-Returns the XYZ representation of this color. hue will always be in \[0; 360). Values are never NaN.
+Returns the \[XYZ\] representation of this color. hue will always be in \[0; 360). Values are never NaN.
 
 _example_ `chroma.color('purple').xyz()` \[~0.13, ~0.06, ~0.21\]  
 
@@ -286,7 +286,7 @@ _example_ `chroma.black` <img align="right" src="https://raw.githubusercontent.c
 
 ### `.cubehelix`(_start_: number = 300, _rotations_: number = -1.5, _hue_: number | \[number, number\] = 1, _gamma_: number = 1, _lightness_: number | \[number, number\] = \[0, 1\]): [CubeHelix](#CubeHelix) <sub><a href="src/index.ts#L922">src</a></sub>
 
-Return a new \[CubeHelix\].
+Return a new \[\[CubeHelix\]\].
 
 _example_ `chroma.cubehelix() // use the default helix` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale0.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.cubehelix()%20//%20use%20the%20default%20helix-0000000401040803080c050d0f0612120817140b1c160d2118102719122c1a15301a19351b1c3a1a203e1a24411a2845192c4818304a17354c16394d163e4e15424e15474e154b4e15504d16544c17584a185c481a60461d6343206741236a3e276d3c2b6f393072373674353c753342773149783050792f577a2f5e7a2f667a306e7b31767b337e7a36867a398e7a3d957a419c7946a3794caa7952b07959b67960bc7967c17a6fc57a77c97b7fcc7c87cf7e8fd17f98d381a0d484a8d486b0d589b8d48cbfd490c6d393ccd197d3d09bd8ce9fddcda4e2cba8e6c9ade9c7b2ecc6b6efc4bbf0c3c0f2c2c5f3c2c9f3c1cef3c1d2f3c2d6f3c3daf2c4def2c6e1f1c9e5f0cbe8f0ceebefd2edefd6f0efdaf2efdef4efe3f6f0e7f8f2ecf9f3f1fbf6f6fcf8fafefbffffff)  
 _example_ `chroma.cubehelix().start(200).rotations(-0.5).gamma(0.8).lightness([0.3, 0.8])` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale1.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.cubehelix().start(200).rotations(-0.5).gamma(0.8).lightness(%5B0.3,%200.8%5D)%0A-3b6c8f3b6e8f3b718f3b738f3b75903b77903b79903c7b8f3c7d8f3c7f8f3c828f3d848e3d868e3e888e3e898d3f8b8d3f8d8c408f8c41918b42938a42958a439689449888469a87479b87489d86499f854ba0844ca2844da3834fa48250a68152a78054a88056aa7f57ab7e59ac7e5bad7d5dae7c5faf7c62b07b64b17b66b27a68b37a6ab4796db5796fb67972b77874b77877b87879b9787cba787eba7881bb7884bb7886bc7889bd798cbd798ebe7991be7a94be7a97bf7b99bf7b9cc07c9fc07da1c07ea4c17fa7c180aac181acc282afc283b2c284b4c386b7c387b9c388bcc48abec48cc1c48dc3c58fc6c591c8c592cac694cdc696cfc798d1c79ad3c79cd5c89ed7c8a0d9c9a2dbc9a4ddcaa6dfcaa9e1cbabe2cbade4ccafe6ccb2e7cdb4e9ceb6eaceb9ebcfbb)  
@@ -295,13 +295,13 @@ _example_ `chroma.cubehelix().start(200).rotations(-0.5).gamma(0.8).lightness([0
 
 [Dave Green's cubehelix color scheme](http://www.mrao.cam.ac.uk/~dag/CUBEHELIX/)!
 
-A CubeHelix is a function defined on 0, 1 which returns colors.
+A CubeHelix is a function defined on \[0, 1\] which returns colors.
 
 ### `cubehelix`(_f_: number): [Color](#Color) <sub><a href="src/index.ts#L946">src</a></sub>
 
 [Dave Green's cubehelix color scheme](http://www.mrao.cam.ac.uk/~dag/CUBEHELIX/)!
 
-A CubeHelix is a function defined on 0, 1 which returns colors.
+A CubeHelix is a function defined on \[0, 1\] which returns colors.
 
 ### `cubehelix.start`(): number <sub><a href="src/index.ts#L956">src</a></sub>
 
@@ -325,7 +325,7 @@ A CubeHelix is a function defined on 0, 1 which returns colors.
 
 ### `cubehelix.scale`(): [Scale](#Scale) <sub><a href="src/index.ts#L1011">src</a></sub>
 
-Convert to a \[Scale\].
+Convert to a \[\[Scale\]\].
 
 _example_ `chroma.cubehelix().scale().correctLightness().domain(2, 22)` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale2.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.cubehelix().scale().correctLightness().domain(2,%2022)%0A-0100010703070d050e100714140a1a160c20180f2619112a1a142e1a16321a19351b1a371b1d3a1a203d1a23401a26431a2744192a47182e49182f4918334b17364c17384d163c4e163d4e15414e15444f15464e154a4e154d4e154f4d16524c16554b17594a185c481a5f461b61451d64431f674122693f276d3c2a6f3a2f71373674353d763247783051792f5d7a2f697b30757b337e7a368a7a3b967a429f7948a7794fae7956b77961bd7969c37a73c87b7ccc7c85cf7e8fd18099d382a2d485acd588b5d48cbdd48fc6d392cbd297d2d09bd8cf9fdccda4e2cba7e5c9ade9c8b0ebc6b6eec5b9f0c4bdf1c3c1f2c2c6f3c2c9f3c1cdf3c1d2f3c2d5f3c3daf2c4ddf2c6e1f1c8e4f1cbe7f0ceebefd1edefd5f0efdaf2efe1f5f0e6f7f1ecf9f3f3fcf7f9fdfafefffe)  
 
@@ -333,7 +333,7 @@ _example_ `chroma.cubehelix().scale().correctLightness().domain(2, 22)` [<img al
 
 ### `.random`(_randomSource_: [random](#random) = Math.random): [Color](#Color) <sub><a href="src/index.ts#L1034">src</a></sub>
 
-Create a new random Color from a random point in the RGB color space.
+Create a new random \[Color\] from a random point in the RGB color space.
 
 ### `.mix`(_col1_: [Chromable](#Chromable), _col2_: [Chromable](#Chromable), _f_: number = 0.5, _m_: [InterpolationMode](#InterpolationMode) = "rgb"): [Color](#Color) <sub><a href="src/index.ts#L1087">src</a></sub>
 
@@ -567,7 +567,9 @@ Get the current gamma value. Defaults to 1.
 
 ### `scale.gamma`(_gamma_: number): this <sub><a href="src/index.ts#L1607">src</a></sub>
 
-Set the gamma value. Gamma-correction can be used to "shift" a scale's center more the the beginning (gamma < 1) or end (gamma > 1), typically used to "even" the lightness gradient. Default is 1.
+Set the gamma value. Gamma-correction can be used to "shift" a scale's center more the the beginning (gamma <
+
+1.  or end (gamma > 1), typically used to "even" the lightness gradient. Default is 1.
 
 _example_ `chroma.scale('YlGn').gamma(0.5)` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale20.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.scale('YlGn').gamma(0.5)-ffffe5f9fdc2f3fab6ebf7b0e5f5acdff2a7daf0a4d3eea0cdeb9dc7e89ac1e698bce395b6e193b1df90addd8ea7da8ca2d8899cd68797d48592d1838dcf8189cd8084cb7e80c97c7bc77a77c57873c3766ec1746abf7266bd7062bb6e5eb96c5ab76a56b56852b3664eb2644bb06247ae6043ac5e40aa5c3ea85b3da5593ba35839a056379e54359c5333995132975030954e2e924d2c904b2b8e4a298c48278a472688452485442284432182421f81421d7f411b7e40197c40177b3f16793e14783e12763d10753d0f743c0d723b0b713b0a703a086e3a066d39056c39036a38016937006837006636006436006335006134006034005e33005d32005b32005a3100583100573000552f00542f00522e00512e004f2d004e2c004c2c004b2b00492b00482a00462a004529)  
 _example_ `chroma.scale('YlGn').gamma(1)` [<img align="right" src="https://raw.githubusercontent.com/NaridaL/chroma.ts/master/readme_img/scale21.svg?sanitize=true">](http://localhost:10002/spaces/index.html#chroma.scale('YlGn').gamma(1)-ffffe5feffe1feffdefdfedafcfed7fcfed3fbfed0fafdccfafdc9f9fdc5f9fdc1f8fcbef7fcbaf5fbb8f3fab6f1f9b4eef8b3ecf8b1e9f7afe7f6ade5f5abe2f4aae0f3a8ddf2a6dbf1a4d8f0a3d5eea1d1ed9fcdeb9dcae99cc6e89ac3e698bfe597bce395b8e293b5e092b1df90addd8ea9db8da5da8ba1d8899cd68798d48694d28490d0828bce8187cd7f83cb7d7ec97c7ac77a76c57871c3766dc17368be7164bc6f60ba6d5bb86a57b66852b3664eb16449af6145ad5f41ab5d3ea75b3ca45939a156379e54359b5232985030954e2d914c2b8e4a288b482688462485442182421e80411b7e40187c3f16793e13773d10753c0d723b0a703b076e3a056c39026938006737006435006134005e33005c3200593100563000532f00502e004d2c004b2b00482a004529)  
