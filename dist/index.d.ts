@@ -957,4 +957,3 @@ declare type XYZ = [number, number, number];
  */
 declare type HCG = [number, number, number];
 export {};
-//# sourceMappingURL=index.d.ts.map

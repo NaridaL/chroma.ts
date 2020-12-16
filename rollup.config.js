@@ -1,55 +1,43 @@
-import typescriptPlugin from "rollup-plugin-typescript2"
+import typescriptPlugin from "@rollup/plugin-typescript"
 import typescript from "typescript"
 import { terser } from "rollup-plugin-terser"
-function config(format /* : "umd" | "es" */, compress /*: boolean */) {
-	return {
-		input: "src/index.ts",
-		output: [
-			{
-				format: format,
-				file: "dist/index." + (format === "umd" ? "umd" : "module") + (compress ? ".min" : "") + ".js",
-				sourcemap: true,
-				name: "chroma",
-				exports: "named",
-			},
-		],
-		plugins: [
-			typescriptPlugin({
-				typescript,
-				tsconfig: __dirname + "/tsconfig.json",
-				tsconfigOverride: {
-					compilerOptions: {
-						resolveJsonModule: false,
-						module: "esnext",
-						moduleResolution: "node",
-						sourceRoot: null,
-						declarationMap: true,
-					},
-				},
-				useTsconfigDeclarationDir: true,
-			}),
-			compress &&
-				terser({
-					compress: {
-						passes: 3,
-						unsafe: true,
-						ecma: 7,
-					},
-					toplevel: true,
-					mangle: {
-						properties: { regex: /^_/ },
-					},
-					// output: {
-					// 	beautify: true,
-					// }
-				}),
-		].filter(x => x),
-		onwarn: function(warning, warn) {
-			if ("THIS_IS_UNDEFINED" === warning.code) return
-			// if ('CIRCULAR_DEPENDENCY' === warning.code) return
-			warn(warning)
-		},
-	}
-}
 
-export default [config("es", false), config("es", true), config("umd", false), config("umd", true)]
+const pkg = require("./package.json")
+export default {
+	input: "src/index.ts",
+	output: [
+		["es", false],
+		["es", true],
+		["umd", false],
+		["umd", true],
+	].map(([format, compress]) => ({
+		format: format,
+		entryFileNames: "[name].[format]" + (compress ? ".min" : "") + ".js",
+		sourcemap: true,
+		dir: "dist",
+		name: pkg.umdGlobal,
+		exports: "named",
+		plugins: compress
+			? [
+					terser({
+						compress: {
+							passes: 3,
+							unsafe: true,
+							ecma: 7,
+						},
+						toplevel: true,
+						mangle: {
+							properties: { regex: /^_/ },
+						},
+					}),
+			  ]
+			: [],
+	})),
+	external: Object.keys(pkg.dependencies || {}),
+	plugins: [typescriptPlugin({ typescript })].filter((x) => x),
+	onwarn: function (warning, warn) {
+		if ("THIS_IS_UNDEFINED" === warning.code) return
+		// if ('CIRCULAR_DEPENDENCY' === warning.code) return
+		warn(warning)
+	},
+}

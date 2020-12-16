@@ -2133,4 +2133,4 @@ function withMax(arr, f) {
 }
 
 export { Color, CubeHelix, Scale, analyze, average, bezier, black, blend, brewer, cmyk, color, contrast, css, cubehelix, deltaE, distance, gl, hcg, hsi, hsl, hsv, kelvin, lab, lch, limits, mix, num, random, rgb, scale, scales, w3cx11, white, xyz };
-//# sourceMappingURL=index.module.js.map
+//# sourceMappingURL=index.es.js.map
