@@ -1,5 +1,11 @@
 {
 	"name": "chroma.ts",
+	"keywords": [
+		"color",
+		"color manipulation",
+		"color spaces",
+		"color scales"
+	],
 	"version": "1.0.10",
 	"description": "",
 	"main": "dist/index.umd.js",

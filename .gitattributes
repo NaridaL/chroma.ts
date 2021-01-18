@@ -1,4 +1,4 @@
 * text=auto eol=lf
 
-dist/* linguist-generated=true
-readme_img/* linguist-generated=true
+dist/* linguist-generated
+readme_img/* linguist-generated
